@@ -4,7 +4,7 @@ import {
   PageHeader,
   Pill,
 } from "@/components/admin/AdminPrimitives";
-import { getArtists } from "@/lib/data";
+import { getArtists } from "@/lib/db/queries";
 
 export default async function AgendaPage() {
   const artists = await getArtists();

@@ -1,4 +1,4 @@
-import { getDemands } from "@/lib/adminData";
+import { getDemands } from "@/lib/db/admin-queries";
 import { DemandesPageClient } from "./DemandesPageClient";
 
 export default async function DemandesPage() {

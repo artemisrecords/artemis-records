@@ -159,12 +159,21 @@ export default function ContratsPage() {
             ["archive", "Archivés"],
           ] as const
         ).map(([k, l]) => {
-          const active = filter === k;
+          const active =
+            k === "tous"
+              ? selectedFilters.size === 0
+              : selectedFilters.has(k as ContractStatus);
           return (
             <button
               key={k}
               type="button"
-              onClick={() => setFilter(k as typeof filter)}
+              onClick={() => {
+                if (k === "tous") {
+                  setSelectedFilters(new Set());
+                } else {
+                  setSelectedFilters(new Set([k as ContractStatus]));
+                }
+              }}
               className={`font-serif text-[11px] tracking-eyebrow uppercase font-bold px-3.5 py-2 rounded-full border cursor-pointer transition-colors ${
                 active
                   ? "bg-bleu-nuit-700 border-bleu-nuit-700 text-beige-sable"

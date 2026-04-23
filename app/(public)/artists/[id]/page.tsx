@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getArtists, findArtist } from "@/lib/data";
+import { getArtists, findArtist } from "@/lib/db/queries";
 import { Badge, Btn, ChapterTitle, Eyebrow } from "@/components/Primitives";
 import { EmbedPlayer } from "@/components/EmbedPlayer";
 import type { CSSProperties } from "react";
