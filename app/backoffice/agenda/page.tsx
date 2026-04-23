@@ -1,26 +1,20 @@
-"use client";
-
 import {
   AdminBtn,
   AdminEyebrow,
   PageHeader,
   Pill,
 } from "@/components/admin/AdminPrimitives";
-import { ARTISTS } from "@/lib/data";
+import { getArtists } from "@/lib/data";
 
-type Show = ReturnType<typeof listShows>[number];
+export default async function AgendaPage() {
+  const artists = await getArtists();
+  const shows = artists
+    .flatMap((a) =>
+      a.shows.map((s) => ({ ...s, artist: a.name, artistId: a.id })),
+    )
+    .sort((a, b) => a.date.localeCompare(b.date));
 
-function listShows() {
-  return ARTISTS.flatMap((a) =>
-    a.shows.map((s) => ({ ...s, artist: a.name, artistId: a.id })),
-  ).sort((a, b) => a.date.localeCompare(b.date));
-}
-
-export default function AgendaPage() {
-  const shows = listShows();
-
-  // Group by month
-  const byMonth = new Map<string, Show[]>();
+  const byMonth = new Map<string, typeof shows>();
   for (const s of shows) {
     const key = s.date.slice(0, 7);
     if (!byMonth.has(key)) byMonth.set(key, []);
@@ -110,7 +104,7 @@ export default function AgendaPage() {
                         : "magenta"
                     }
                   >
-                    {s.status}
+                    {s.status ?? "—"}
                   </Pill>
                   <button
                     type="button"

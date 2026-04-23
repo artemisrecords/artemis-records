@@ -41,6 +41,10 @@ export async function getNews(): Promise<NewsRow[]> {
     .orderBy(desc(news.date));
 }
 
+export async function getAllNews(): Promise<NewsRow[]> {
+  return db.select().from(news).orderBy(desc(news.date));
+}
+
 export async function findNews(id: string): Promise<NewsRow | undefined> {
   const rows = await db.select().from(news).where(eq(news.id, id)).limit(1);
   return rows[0];

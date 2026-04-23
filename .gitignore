@@ -1,3 +1,4 @@
+# Ignore node modules and build output
 node_modules
 .next
 out
@@ -5,4 +6,12 @@ out
 *.log
 .env*.local
 next-env.d.ts
+*.tsbuildinfo
+
+# Vercel deployment files
 .vercel
+
+# Local environment variables
+.env
+.env.local
+.env.development.local

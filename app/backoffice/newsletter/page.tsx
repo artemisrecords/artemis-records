@@ -1,5 +1,3 @@
-"use client";
-
 import {
   AdminBtn,
   AdminEyebrow,
@@ -7,7 +5,7 @@ import {
   PageHeader,
   Pill,
 } from "@/components/admin/AdminPrimitives";
-import { SUBSCRIBERS } from "@/lib/adminData";
+import { getSubscribers } from "@/lib/adminData";
 
 const CAMPAIGNS = [
   {
@@ -44,15 +42,9 @@ const CAMPAIGNS = [
   },
 ];
 
-export default function NewsletterPage() {
-  const allSubs = SUBSCRIBERS.concat(
-    Array.from({ length: 148 }, (_, i) => ({
-      id: `g${i}`,
-      email: `abonne-${i + 5}@exemple.fr`,
-      subscribed: "2026-03-01",
-      tags: ["newsletter"],
-    })),
-  );
+export default async function NewsletterPage() {
+  const SUBSCRIBERS = await getSubscribers();
+  const allSubsCount = SUBSCRIBERS.length + 148;
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,7 +64,7 @@ export default function NewsletterPage() {
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPI
           label="Abonnés"
-          value={allSubs.length}
+          value={allSubsCount}
           delta="+12 ce mois"
           hint="désinscriptions : 2"
         />
@@ -171,7 +163,7 @@ export default function NewsletterPage() {
           </ul>
           <div className="mt-5 pt-5 border-t border-ink/10">
             <AdminBtn kind="secondary" className="w-full justify-center">
-              Voir les {allSubs.length} abonnés ⟶
+              Voir les {allSubsCount} abonnés ⟶
             </AdminBtn>
           </div>
         </div>
@@ -213,7 +205,7 @@ export default function NewsletterPage() {
               Audience
             </div>
             <div className="font-display text-[15px] mt-1">
-              Tous les abonnés ({allSubs.length})
+              Tous les abonnés ({allSubsCount})
             </div>
             <div className="text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle mt-4">
               Planification
