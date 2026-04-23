@@ -11,7 +11,7 @@ export type Show = {
   ticketUrl?: string | null;
 };
 
-export { getArtists, findArtist, getNews, findNews } from "./db/queries";
+export { getArtists, findArtist, getNews, getAllNews, findNews } from "./db/queries";
 
 export const formatDate = (iso: string | Date): string => {
   try {

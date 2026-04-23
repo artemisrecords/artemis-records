@@ -10,18 +10,25 @@ import {
 } from "@/components/admin/AdminPrimitives";
 import { BarChart, Donut, Sparkline } from "@/components/admin/Charts";
 import { BowMark } from "@/components/Primitives";
-import { ARTISTS, NEWS } from "@/lib/data";
+import { getArtists, getNews, formatDate } from "@/lib/data";
 import {
-  DEMANDS,
+  getDemands,
+  getDemos,
+  getSubscribers,
   DEMAND_CATEGORY_LABEL,
-  DEMOS,
   DEMO_STATUS_LABEL,
-  SUBSCRIBERS,
 } from "@/lib/adminData";
 
-export default function DashboardPage() {
-  const newDemos = DEMOS.filter((d) => d.status === "nouveau");
-  const openDemands = DEMANDS.filter((d) => d.status === "ouverte");
+export default async function DashboardPage() {
+  const [artists, news, demos, demands, subscribers] = await Promise.all([
+    getArtists(),
+    getNews(),
+    getDemos(),
+    getDemands(),
+    getSubscribers(),
+  ]);
+  const newDemos = demos.filter((d) => d.status === "nouveau");
+  const openDemands = demands.filter((d) => d.status === "ouverte");
 
   return (
     <div className="flex flex-col gap-10">
@@ -46,13 +53,12 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPI
           label="Démos reçues · 7j"
-          value={DEMOS.length}
-          delta="+3 cette semaine"
-          hint="3 non écoutées"
+          value={demos.length}
+          delta={`+${newDemos.length} cette semaine`}
+          hint={`${newDemos.length} non écoutées`}
           spark={<Sparkline data={[2, 3, 1, 4, 2, 5, 3, 6, 4, 7]} />}
         />
         <KPI
@@ -70,8 +76,8 @@ export default function DashboardPage() {
         />
         <KPI
           label="Artistes au roster"
-          value={ARTISTS.length}
-          hint="2 publiés · 0 en attente"
+          value={artists.length}
+          hint={`${artists.filter((a) => a.published).length} publiés · ${artists.filter((a) => !a.published).length} en attente`}
           spark={
             <Sparkline
               data={[1, 1, 1, 2, 2, 2, 2, 2, 2, 2]}
@@ -82,7 +88,7 @@ export default function DashboardPage() {
         />
         <KPI
           label="Abonnés newsletter"
-          value={`${SUBSCRIBERS.length + 148}`}
+          value={`${subscribers.length + 148}`}
           delta="+12 ce mois-ci"
           hint="ouverture moyenne 42%"
           spark={
@@ -95,7 +101,6 @@ export default function DashboardPage() {
         />
       </section>
 
-      {/* Activity overview — bar chart + donut */}
       <section className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
         <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-6">
           <div className="flex items-end justify-between mb-5 gap-3 flex-wrap">
@@ -166,13 +171,12 @@ export default function DashboardPage() {
               },
               { label: "Refusés", value: 1, color: "var(--color-taupe-700)" },
             ]}
-            centerLabel={`${DEMOS.length}`}
+            centerLabel={`${demos.length}`}
             centerHint="Ce mois"
           />
         </div>
       </section>
 
-      {/* Two-column: demos + demands */}
       <section className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-6">
         <div className="bg-paper-soft border border-ink/10 rounded-[2px]">
           <div className="flex items-center justify-between px-6 py-5 border-b border-ink/10">
@@ -190,7 +194,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <ul>
-            {DEMOS.slice(0, 5).map((d, i) => (
+            {demos.slice(0, 5).map((d, i) => (
               <li
                 key={d.id}
                 className={`grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 px-6 py-4 ${
@@ -223,7 +227,7 @@ export default function DashboardPage() {
                       : "info"
                   }
                 >
-                  {DEMO_STATUS_LABEL[d.status]}
+                  {DEMO_STATUS_LABEL[d.status as keyof typeof DEMO_STATUS_LABEL]}
                 </Pill>
                 <Link
                   href={`/backoffice/demos?id=${d.id}`}
@@ -252,48 +256,50 @@ export default function DashboardPage() {
             </Link>
           </div>
           <ul>
-            {openDemands.concat(DEMANDS.filter((d) => d.status === "en_cours")).slice(0, 5).map((d, i) => (
-              <li
-                key={d.id}
-                className={`flex flex-col gap-2 px-6 py-4 ${
-                  i > 0 ? "border-t border-ink/8" : ""
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <Pill tone="neutral">
-                    {DEMAND_CATEGORY_LABEL[d.category]}
-                  </Pill>
-                  <span className="italic text-[11px] text-ink-muted">
-                    {d.received}
-                  </span>
-                </div>
-                <div className="font-display uppercase tracking-[0.04em] text-[15px]">
-                  {d.subject}
-                </div>
-                <div className="italic text-[12px] text-ink-muted line-clamp-2 leading-[1.5]">
-                  {d.message}
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-[12px] text-ink">
-                    {d.name}
-                    {d.org && (
-                      <span className="text-ink-subtle"> · {d.org}</span>
-                    )}
-                  </span>
-                  <Link
-                    href={`/backoffice/demandes?id=${d.id}`}
-                    className="font-serif text-[11px] tracking-eyebrow uppercase font-bold text-magenta hover:opacity-80"
-                  >
-                    Répondre ⟶
-                  </Link>
-                </div>
-              </li>
-            ))}
+            {openDemands
+              .concat(demands.filter((d) => d.status === "en_cours"))
+              .slice(0, 5)
+              .map((d, i) => (
+                <li
+                  key={d.id}
+                  className={`flex flex-col gap-2 px-6 py-4 ${
+                    i > 0 ? "border-t border-ink/8" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <Pill tone="neutral">
+                      {DEMAND_CATEGORY_LABEL[d.category as keyof typeof DEMAND_CATEGORY_LABEL]}
+                    </Pill>
+                    <span className="italic text-[11px] text-ink-muted">
+                      {formatDate(d.receivedAt)}
+                    </span>
+                  </div>
+                  <div className="font-display uppercase tracking-[0.04em] text-[15px]">
+                    {d.subject}
+                  </div>
+                  <div className="italic text-[12px] text-ink-muted line-clamp-2 leading-[1.5]">
+                    {d.message}
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-[12px] text-ink">
+                      {d.name}
+                      {d.org && (
+                        <span className="text-ink-subtle"> · {d.org}</span>
+                      )}
+                    </span>
+                    <Link
+                      href={`/backoffice/demandes?id=${d.id}`}
+                      className="font-serif text-[11px] tracking-eyebrow uppercase font-bold text-magenta hover:opacity-80"
+                    >
+                      Répondre ⟶
+                    </Link>
+                  </div>
+                </li>
+              ))}
           </ul>
         </div>
       </section>
 
-      {/* Bottom row — next shows & journal */}
       <section className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-6">
         <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-6">
           <div className="flex items-center justify-between mb-5">
@@ -311,9 +317,10 @@ export default function DashboardPage() {
             </Link>
           </div>
           <ul className="divide-y divide-ink/10">
-            {ARTISTS.flatMap((a) =>
-              a.shows.map((s) => ({ ...s, artist: a.name })),
-            )
+            {artists
+              .flatMap((a) =>
+                a.shows.map((s) => ({ ...s, artist: a.name })),
+              )
               .sort((a, b) => a.date.localeCompare(b.date))
               .slice(0, 5)
               .map((s) => (
@@ -346,7 +353,7 @@ export default function DashboardPage() {
                         : "magenta"
                     }
                   >
-                    {s.status}
+                    {s.status ?? "—"}
                   </Pill>
                 </li>
               ))}
@@ -369,18 +376,18 @@ export default function DashboardPage() {
             </Link>
           </div>
           <ul className="divide-y divide-ink/10">
-            {NEWS.slice(0, 4).map((n) => (
+            {news.slice(0, 4).map((n) => (
               <li
                 key={n.id}
                 className="grid grid-cols-[72px_1fr_auto] gap-4 py-4 items-center"
               >
                 <div
                   className="w-[72px] h-[54px] bg-center bg-cover rounded-[2px] grain"
-                  style={{ backgroundImage: `url(${n.image})` }}
+                  style={{ backgroundImage: `url(${n.imageUrl})` }}
                 />
                 <div className="min-w-0">
                   <div className="text-[10px] tracking-eyebrow uppercase font-bold text-magenta">
-                    {n.category} · {n.date}
+                    {n.category} · {formatDate(n.date)}
                   </div>
                   <div className="font-display uppercase tracking-[0.04em] text-[15px] truncate mt-0.5">
                     {n.title}
@@ -398,7 +405,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Activity strip */}
       <section className="bg-bleu-nuit-700 text-beige-sable rounded-[2px] p-8 relative overflow-hidden grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 items-center">
         <div className="stars opacity-60" aria-hidden />
         <div className="relative z-10">
