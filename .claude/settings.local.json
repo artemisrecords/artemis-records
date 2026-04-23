@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x ~/.claude/hooks/terminal-color.sh)",
+      "Bash(rm -f ~/.claude/hooks/terminal-color.log)",
+      "Bash(touch ~/.claude/hooks/terminal-color.log)"
+    ]
+  }
+}
