@@ -1,19 +1,20 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ARTISTS, findArtist } from "@/lib/data";
+import { getArtists, findArtist } from "@/lib/data";
 import { Badge, Btn, ChapterTitle, Eyebrow } from "@/components/Primitives";
 import { EmbedPlayer } from "@/components/EmbedPlayer";
 import type { CSSProperties } from "react";
 
-export function generateStaticParams() {
-  return ARTISTS.map((a) => ({ id: a.id }));
+export async function generateStaticParams() {
+  const all = await getArtists();
+  return all.map((a) => ({ id: a.id }));
 }
 
 type Params = Promise<{ id: string }>;
 
 export default async function ArtistDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const artist = findArtist(id);
+  const artist = await findArtist(id);
   if (!artist) notFound();
 
   const rootStyle: CSSProperties = artist.primaryColor
@@ -26,7 +27,7 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
       <section
         className="grain text-beige-sable px-[clamp(24px,4vw,56px)] pt-[clamp(64px,10vw,140px)] pb-[clamp(80px,12vw,160px)]"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(28,31,74,0.3) 0%, rgba(28,31,74,0.85) 100%), url(${artist.cover})`,
+          backgroundImage: `linear-gradient(180deg, rgba(28,31,74,0.3) 0%, rgba(28,31,74,0.85) 100%), url(${artist.coverUrl})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -39,7 +40,7 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
         </Link>
         <div className="h-8" />
         <Eyebrow inverse className="!text-magenta">
-          Artiste · Signée {artist.signed}
+          Artiste · Signée {artist.signedYear}
         </Eyebrow>
         <h1 className="font-display uppercase tracking-display leading-[0.95] text-[clamp(3.5rem,11vw,10rem)] mt-2.5 mb-3.5 font-normal">
           {artist.name}

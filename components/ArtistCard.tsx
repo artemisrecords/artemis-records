@@ -14,13 +14,13 @@ export const ArtistCard = ({
       featured ? "min-h-[460px]" : "min-h-[380px]"
     }`}
     style={{
-      background: `center/cover no-repeat url(${artist.portrait || artist.cover})`,
+      background: `center/cover no-repeat url(${artist.portraitUrl || artist.coverUrl})`,
     }}
   >
     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(28,31,74,0)_40%,rgba(28,31,74,0.85)_100%)]" />
     <div className="relative text-beige-sable">
       <div className="text-[10px] tracking-eyebrow uppercase text-magenta font-bold mb-1.5">
-        Signée {artist.signed} · {artist.genre}
+        Signée {artist.signedYear} · {artist.genre}
       </div>
       <div
         className={`font-display uppercase tracking-display leading-none ${
