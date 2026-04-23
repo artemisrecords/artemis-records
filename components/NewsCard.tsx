@@ -12,7 +12,7 @@ export const NewsCard = ({
   <Link href={`/news/${news.id}`} className="block cursor-pointer">
     <div
       className="grain h-[200px] mb-3.5"
-      style={{ background: `center/cover no-repeat url(${news.image})` }}
+      style={{ background: `center/cover no-repeat url(${news.imageUrl})` }}
     />
     <Eyebrow inverse={inverse} className="!text-magenta">
       {news.category} · {formatDate(news.date)}

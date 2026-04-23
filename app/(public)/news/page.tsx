@@ -1,9 +1,9 @@
-import { NEWS } from "@/lib/data";
+import { getNews } from "@/lib/data";
 import { ChapterTitle } from "@/components/Primitives";
 import { NewsCard } from "@/components/NewsCard";
 
-export default function NewsPage() {
-  const news = NEWS.filter((n) => n.published);
+export default async function NewsPage() {
+  const news = await getNews();
   return (
     <section className="px-[clamp(24px,4vw,56px)] py-[clamp(56px,8vw,96px)]">
       <ChapterTitle

@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { NEWS, findNews, formatDate } from "@/lib/data";
+import { getNews, findNews, formatDate } from "@/lib/data";
 import { Eyebrow } from "@/components/Primitives";
 
-export function generateStaticParams() {
-  return NEWS.map((n) => ({ id: n.id }));
+export async function generateStaticParams() {
+  const all = await getNews();
+  return all.map((n) => ({ id: n.id }));
 }
 
 type Params = Promise<{ id: string }>;
 
 export default async function NewsDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const item = findNews(id);
+  const item = await findNews(id);
   if (!item) notFound();
 
   return (
@@ -19,7 +20,7 @@ export default async function NewsDetailPage({ params }: { params: Params }) {
       <div
         className="grain text-beige-sable px-[clamp(24px,4vw,56px)] py-[clamp(72px,10vw,130px)]"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(28,31,74,0.25) 0%, rgba(28,31,74,0.7) 100%), url(${item.image})`,
+          backgroundImage: `linear-gradient(180deg, rgba(28,31,74,0.25) 0%, rgba(28,31,74,0.7) 100%), url(${item.imageUrl})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
