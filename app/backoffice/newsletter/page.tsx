@@ -5,7 +5,7 @@ import {
   PageHeader,
   Pill,
 } from "@/components/admin/AdminPrimitives";
-import { getSubscribers } from "@/lib/adminData";
+import { getSubscribers } from "@/lib/db/admin-queries";
 
 const CAMPAIGNS = [
   {

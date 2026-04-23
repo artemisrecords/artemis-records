@@ -1,4 +1,4 @@
-import { getArtists } from "@/lib/data";
+import { getArtists } from "@/lib/db/queries";
 import { StatistiquesClient } from "./StatistiquesClient";
 
 export default async function StatistiquesPage() {

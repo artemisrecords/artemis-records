@@ -10,14 +10,10 @@ import {
 } from "@/components/admin/AdminPrimitives";
 import { BarChart, Donut, Sparkline } from "@/components/admin/Charts";
 import { BowMark } from "@/components/Primitives";
-import { getArtists, getNews, formatDate } from "@/lib/data";
-import {
-  getDemands,
-  getDemos,
-  getSubscribers,
-  DEMAND_CATEGORY_LABEL,
-  DEMO_STATUS_LABEL,
-} from "@/lib/adminData";
+import { getArtists, getNews } from "@/lib/db/queries";
+import { formatDate } from "@/lib/data";
+import { getDemands, getDemos, getSubscribers } from "@/lib/db/admin-queries";
+import { DEMAND_CATEGORY_LABEL, DEMO_STATUS_LABEL } from "@/lib/adminData";
 
 export default async function DashboardPage() {
   const [artists, news, demos, demands, subscribers] = await Promise.all([

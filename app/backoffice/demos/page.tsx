@@ -1,4 +1,4 @@
-import { getDemos } from "@/lib/adminData";
+import { getDemos } from "@/lib/db/admin-queries";
 import { DemosPageClient } from "./DemosPageClient";
 
 export default async function DemosPage() {

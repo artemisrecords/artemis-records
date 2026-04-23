@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { findArtist } from "@/lib/data";
+import { findArtist } from "@/lib/db/queries";
 import { ArtistEditClient } from "./ArtistEditClient";
 
 export default async function ArtistEditPage({

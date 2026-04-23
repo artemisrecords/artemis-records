@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getNews, findNews, formatDate } from "@/lib/data";
+import { getNews, findNews } from "@/lib/db/queries";
+import { formatDate } from "@/lib/data";
 import { Eyebrow } from "@/components/Primitives";
 
 export async function generateStaticParams() {

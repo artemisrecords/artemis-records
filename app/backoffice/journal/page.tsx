@@ -1,4 +1,4 @@
-import { getAllNews } from "@/lib/data";
+import { getAllNews } from "@/lib/db/queries";
 import { JournalListClient } from "./JournalListClient";
 
 export default async function JournalPage() {

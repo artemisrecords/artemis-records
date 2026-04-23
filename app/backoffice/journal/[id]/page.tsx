@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { findNews, getAllNews } from "@/lib/data";
+import { findNews, getAllNews } from "@/lib/db/queries";
 import { JournalEditClient } from "./JournalEditClient";
 
 export default async function JournalEditPage({

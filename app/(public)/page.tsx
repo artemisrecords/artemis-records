@@ -1,4 +1,4 @@
-import { getArtists, getNews } from "@/lib/data";
+import { getArtists, getNews } from "@/lib/db/queries";
 import { HomeClient } from "./HomeClient";
 
 export default async function HomePage() {

@@ -1,4 +1,4 @@
-import { getNews } from "@/lib/data";
+import { getNews } from "@/lib/db/queries";
 import { ChapterTitle } from "@/components/Primitives";
 import { NewsCard } from "@/components/NewsCard";
 

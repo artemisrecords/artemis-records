@@ -1,6 +1,4 @@
-import { db } from "./db";
-import { demos, demands, subscribers } from "./db/schema";
-import { desc } from "drizzle-orm";
+import type { demos, demands, subscribers } from "./db/schema";
 
 export type DemoStatus = "nouveau" | "ecoute" | "retenu" | "refuse";
 export type DemandCategory =
@@ -42,16 +40,6 @@ export const TEAM: TeamMember[] = [
     email: "ines@artemis-records.fr",
   },
 ];
-
-export async function getDemos(): Promise<Demo[]> {
-  return db.select().from(demos).orderBy(desc(demos.receivedAt));
-}
-export async function getDemands(): Promise<Demand[]> {
-  return db.select().from(demands).orderBy(desc(demands.receivedAt));
-}
-export async function getSubscribers(): Promise<Subscriber[]> {
-  return db.select().from(subscribers).orderBy(desc(subscribers.subscribedAt));
-}
 
 export const DEMO_STATUS_LABEL: Record<DemoStatus, string> = {
   nouveau: "Nouveau",

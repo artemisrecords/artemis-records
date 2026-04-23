@@ -1,4 +1,4 @@
-import { getArtists } from "@/lib/data";
+import { getArtists } from "@/lib/db/queries";
 import { ArtistsListClient } from "./ArtistsListClient";
 
 export default async function ArtistsPage() {
