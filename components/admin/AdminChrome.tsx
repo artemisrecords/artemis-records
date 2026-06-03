@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, type SessionUser } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { CommandPalette, useCommandPaletteShortcut } from "./CommandPalette";
 
-export function AdminChrome({ children }: { children: ReactNode }) {
+export function AdminChrome({
+  children,
+  user,
+}: {
+  children: ReactNode;
+  user: SessionUser;
+}) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   useCommandPaletteShortcut(() => setPaletteOpen((v) => !v));
@@ -19,6 +25,7 @@ export function AdminChrome({ children }: { children: ReactNode }) {
         Aller au contenu
       </a>
       <Sidebar
+        user={user}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />

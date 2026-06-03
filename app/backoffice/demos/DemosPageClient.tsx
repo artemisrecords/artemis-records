@@ -66,7 +66,7 @@ export function DemosPageClient({ demos }: { demos: Demo[] }) {
         chapter="02"
         eyebrow={`Boîte à démos · ${demos.length} soumissions`}
         title="Démos reçues"
-        italic="Trier, écouter, répondre. Chaque retour compte — même un refus mérite une phrase choisie."
+        italic="Trier, écouter, répondre. Chaque retour compte. Même un refus mérite une phrase choisie."
         actions={
           <>
             <AdminBtn kind="secondary">Exporter CSV</AdminBtn>
@@ -88,7 +88,7 @@ export function DemosPageClient({ demos }: { demos: Demo[] }) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher — artiste, genre, ville…"
+            placeholder="Rechercher : artiste, genre, ville…"
             className="bg-paper-soft border border-ink/15 rounded-full pl-10 pr-4 py-2 font-serif text-[13px] w-[320px] outline-none focus:border-magenta transition-colors placeholder:italic placeholder:text-ink-subtle"
           />
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle text-[13px]">
@@ -109,7 +109,7 @@ export function DemosPageClient({ demos }: { demos: Demo[] }) {
               <li className="p-6">
                 <EmptyState
                   title="Silence radio"
-                  body="Aucune démo ne correspond à ces filtres. Essayez d'élargir la recherche ou attendez la prochaine soumission — elles arrivent toujours."
+                  body="Aucune démo ne correspond à ces filtres. Essayez d'élargir la recherche ou attendez la prochaine soumission. Elles arrivent toujours."
                   action={
                     <AdminBtn
                       kind="secondary"
@@ -282,7 +282,7 @@ function DemoDetail({ demo }: { demo: Demo }) {
             <div className="font-serif text-[14px] text-ink">
               {demo.assignedTo || (
                 <span className="italic text-ink-subtle">
-                  Personne — assigner
+                  Personne · assigner
                 </span>
               )}
             </div>
@@ -326,7 +326,7 @@ function DemoDetail({ demo }: { demo: Demo }) {
           <AdminEyebrow className="mb-2">Notes internes</AdminEyebrow>
           <textarea
             rows={3}
-            placeholder="Vos impressions à chaud — ce qui accroche, ce qui tempère, ce qu'il faut creuser…"
+            placeholder="Vos impressions à chaud : ce qui accroche, ce qui tempère, ce qu'il faut creuser…"
             className="w-full bg-paper border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] italic text-ink outline-none focus:border-magenta transition-colors rounded-[2px] resize-y leading-[1.55]"
           />
         </div>

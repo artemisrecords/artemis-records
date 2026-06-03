@@ -45,7 +45,7 @@ export function StatistiquesClient({ artists }: { artists: Artist[] }) {
         chapter="08"
         eyebrow="Lecture des chiffres · mis à jour il y a 4 h"
         title="Statistiques"
-        italic="Chiffres agrégés depuis Spotify, YouTube et Bandcamp — à lire comme une météo, pas comme un oracle."
+        italic="Chiffres agrégés depuis Spotify, YouTube et Bandcamp. À lire comme une météo, pas comme un oracle."
         actions={
           <>
             <AdminBtn kind="secondary">Télécharger le rapport</AdminBtn>
@@ -265,7 +265,7 @@ export function StatistiquesClient({ artists }: { artists: Artist[] }) {
           <div className="pt-4 border-t border-ink/10">
             <AdminEyebrow className="mb-2">À noter</AdminEyebrow>
             <p className="italic text-[13px] text-ink-muted leading-[1.55]">
-              Forte progression au Québec ce mois-ci (+34 %) — à suivre pour
+              Forte progression au Québec ce mois-ci (+34 %). À suivre pour
               une éventuelle programmation côté Montréal à l&apos;automne.
             </p>
           </div>

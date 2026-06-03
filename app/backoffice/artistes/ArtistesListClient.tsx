@@ -17,9 +17,9 @@ export function ArtistesListClient({ artists }: { artists: Artist[] }) {
     <div className="flex flex-col gap-6">
       <PageHeader
         chapter="04"
-        eyebrow={`Roster — ${artists.length} artistes`}
+        eyebrow={`Roster · ${artists.length} artistes`}
         title="Artistes"
-        italic="Fiches, biographies, discographies, concerts — piloter le roster comme une collection vivante."
+        italic="Fiches, biographies, discographies, concerts. Piloter le roster comme une collection vivante."
         actions={
           <>
             <AdminBtn kind="secondary">Exporter le roster</AdminBtn>

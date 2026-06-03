@@ -49,7 +49,7 @@ export function DemandesPageClient({ demands }: { demands: Demand[] }) {
         chapter="03"
         eyebrow={`Demandes entrantes · ${demands.length} au total`}
         title="Demandes"
-        italic="Presse, booking, partenariats, synchros — tout ce qui arrive par le formulaire contact, rangé pour mieux répondre."
+        italic="Presse, booking, partenariats, synchros : tout ce qui arrive par le formulaire contact, rangé pour mieux répondre."
         actions={
           <>
             <AdminBtn kind="secondary">Marquer tout lu</AdminBtn>
@@ -238,7 +238,7 @@ function DemandDetail({ demand }: { demand: Demand }) {
           <AdminEyebrow className="mb-2">Réponse</AdminEyebrow>
           <textarea
             rows={5}
-            placeholder="Bonjour, merci de nous avoir écrit… — n'hésitez pas à prendre le temps d'une vraie réponse."
+            placeholder="Bonjour, merci de nous avoir écrit… N'hésitez pas à prendre le temps d'une vraie réponse."
             className="w-full bg-paper border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] text-ink outline-none focus:border-magenta transition-colors rounded-[2px] resize-y leading-[1.55]"
           />
           <div className="flex items-center gap-2 text-[11px] tracking-eyebrow uppercase font-bold mt-2">

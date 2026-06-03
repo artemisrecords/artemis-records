@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import {
   AdminBtn,
   AdminEyebrow,
@@ -16,13 +18,22 @@ import { getDemands, getDemos, getSubscribers } from "@/lib/db/admin-queries";
 import { DEMAND_CATEGORY_LABEL, DEMO_STATUS_LABEL } from "@/lib/adminData";
 
 export default async function DashboardPage() {
-  const [artists, news, demos, demands, subscribers] = await Promise.all([
-    getArtists(),
-    getNews(),
-    getDemos(),
-    getDemands(),
-    getSubscribers(),
-  ]);
+  const [session, artists, news, demos, demands, subscribers] =
+    await Promise.all([
+      auth.api.getSession({ headers: await headers() }),
+      getArtists(),
+      getNews(),
+      getDemos(),
+      getDemands(),
+      getSubscribers(),
+    ]);
+  // Le layout garantit déjà une session ; on garde une retombée propre au cas où.
+  // On lit le prénom tel quel (pas de découpage : gère les prénoms composés).
+  const firstName =
+    session?.user.firstName?.trim() ||
+    session?.user.name?.trim() ||
+    session?.user.email.split("@")[0] ||
+    "";
   const newDemos = demos.filter((d) => d.status === "nouveau");
   const openDemands = demands.filter((d) => d.status === "ouverte");
 
@@ -37,9 +48,9 @@ export default async function DashboardPage() {
         </span>
         <PageHeader
           chapter="01"
-          eyebrow="Pilotage — Semaine 17 · 2026"
-          title="Bonsoir, Margaux."
-          italic="Voici ce qui attend le label cette semaine — les démos qui dorment encore, les demandes à ne pas laisser refroidir, les dates à tenir."
+          eyebrow="Pilotage · Semaine 17 · 2026"
+          title={firstName ? `Bonsoir, ${firstName}.` : "Bonsoir."}
+          italic="Voici ce qui attend le label cette semaine : les démos qui dorment encore, les demandes à ne pas laisser refroidir, les dates à tenir."
           actions={
             <>
               <AdminBtn kind="secondary">Exporter la semaine</AdminBtn>
@@ -101,7 +112,7 @@ export default async function DashboardPage() {
         <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-6">
           <div className="flex items-end justify-between mb-5 gap-3 flex-wrap">
             <div>
-              <AdminEyebrow>Entrées — 10 dernières semaines</AdminEyebrow>
+              <AdminEyebrow>Entrées · 10 dernières semaines</AdminEyebrow>
               <div className="font-display uppercase tracking-display text-[22px] font-normal mt-1">
                 Courbe d&apos;activité
               </div>
@@ -334,7 +345,7 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <div className="font-serif text-[14px] text-ink">
-                      {s.artist} — {s.venue}
+                      {s.artist} · {s.venue}
                     </div>
                     <div className="italic text-[12px] text-ink-muted">
                       {s.city}
@@ -349,7 +360,7 @@ export default async function DashboardPage() {
                         : "magenta"
                     }
                   >
-                    {s.status ?? "—"}
+                    {s.status ?? "-"}
                   </Pill>
                 </li>
               ))}

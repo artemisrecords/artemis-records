@@ -82,7 +82,7 @@ export function BarChart({
                 d.accent ? "bg-magenta" : "bg-bleu-nuit-700/80 hover:bg-bleu-nuit-700"
               }`}
               style={barStyle}
-              title={`${d.label} — ${d.value}`}
+              title={`${d.label} : ${d.value}`}
             />
             <div className="text-[9px] tracking-eyebrow uppercase font-bold text-ink-subtle truncate max-w-full">
               {d.label}

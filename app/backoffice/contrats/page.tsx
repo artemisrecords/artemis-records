@@ -29,29 +29,29 @@ type Contract = {
 const CONTRACTS: Contract[] = [
   {
     id: "ct-2026-004",
-    title: "Contrat d'artiste — Allicyone",
+    title: "Contrat d'artiste · Allicyone",
     party: "Allicyone",
     type: "Contrat d'artiste · 3 ans",
     start: "2024-03-01",
     end: "2027-02-28",
-    amount: "—",
+    amount: "-",
     status: "en_cours",
     signedBy: ["Allicyone", "M. Villeneuve"],
   },
   {
     id: "ct-2026-003",
-    title: "Contrat d'artiste — Caëlya",
+    title: "Contrat d'artiste · Caëlya",
     party: "Caëlya",
     type: "Contrat d'artiste · 2 ans",
     start: "2025-09-15",
     end: "2027-09-14",
-    amount: "—",
+    amount: "-",
     status: "en_cours",
     signedBy: ["Caëlya", "M. Villeneuve"],
   },
   {
     id: "ct-2026-005",
-    title: "Synchro — Arte documentaire 'Rivières'",
+    title: "Synchro · Arte documentaire 'Rivières'",
     party: "Arte France",
     type: "Synchronisation · usage docu",
     start: "2026-04-18",
@@ -62,7 +62,7 @@ const CONTRACTS: Contract[] = [
   },
   {
     id: "ct-2026-002",
-    title: "Booking — Rock School Barbey",
+    title: "Booking · Rock School Barbey",
     party: "Rock School Barbey, Bordeaux",
     type: "Engagement scène · 28.05.2026",
     start: "2026-03-10",
@@ -84,7 +84,7 @@ const CONTRACTS: Contract[] = [
   },
   {
     id: "ct-2025-012",
-    title: "Licence d'édition — Les Ruisseaux",
+    title: "Licence d'édition · Les Ruisseaux",
     party: "Caëlya / Éditions Nord",
     type: "Licence d'édition musicale",
     start: "2025-10-12",
@@ -129,7 +129,7 @@ export default function ContratsPage() {
         chapter="09"
         eyebrow="Juridique & production"
         title="Contrats"
-        italic="Artistes, synchros, bookings, distribution — la paperasse qui fait tenir les promesses."
+        italic="Artistes, synchros, bookings, distribution. La paperasse qui fait tenir les promesses."
         actions={
           <>
             <AdminBtn kind="secondary">Modèles de contrat</AdminBtn>

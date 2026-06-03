@@ -166,7 +166,7 @@ export function JournalEditClient({
                 {h.when}
               </span>
               <span className="italic text-[13px] text-ink">
-                {h.who} — {h.what}
+                {h.who} · {h.what}
               </span>
               <button
                 type="button"
