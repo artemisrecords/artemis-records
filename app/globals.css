@@ -257,6 +257,83 @@
 
   .line { border-color: rgba(28, 31, 74, 0.14); }
   .line-strong { border-color: rgba(28, 31, 74, 0.28); }
+
+  /* ---- Curseur étoile personnalisé ------------------------------------ */
+  /* Masque le curseur natif uniquement quand le curseur custom est actif
+     (pointeur fin, pas de prefers-reduced-motion — géré côté composant). */
+  .star-cursor-active,
+  .star-cursor-active * {
+    cursor: none !important;
+  }
+
+  .star-cursor-root {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    contain: layout style;
+  }
+
+  .star-cursor-head,
+  .star-cursor-trail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .star-cursor-head {
+    z-index: 1;
+    transition: opacity 200ms var(--ease-out);
+    filter: drop-shadow(0 1px 2px rgba(28, 31, 74, 0.35));
+  }
+  .star-cursor-trail {
+    z-index: 0;
+    transition: opacity 240ms linear;
+    filter: drop-shadow(0 0 2px rgba(159, 32, 99, 0.4));
+  }
+
+  /* Les trois formes sont empilées au même point ; on les fait apparaître /
+     disparaître en fondu + échelle pour un morphing fluide. */
+  .star-cursor-head .sc-shape {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.4) rotate(-20deg);
+    opacity: 0;
+    transition:
+      opacity 220ms var(--ease-out),
+      transform 260ms var(--ease-out);
+  }
+  .star-cursor-head[data-mode="star"] .sc-star,
+  .star-cursor-head[data-mode="arrow"] .sc-arrow,
+  .star-cursor-head[data-mode="text"] .sc-text {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+
+  /* L'étoile tourne doucement en continu (sur le path, pour ne pas gêner le
+     morphing porté par le transform du conteneur). */
+  .star-cursor-head[data-mode="star"] .sc-star path {
+    animation: sc-spin 9s linear infinite;
+    transform-origin: 12px 12px;
+  }
+  /* Retour pressé : léger pincement de la forme active. */
+  .star-cursor-head[data-mode="star"].is-down .sc-star,
+  .star-cursor-head[data-mode="arrow"].is-down .sc-arrow,
+  .star-cursor-head[data-mode="text"].is-down .sc-text {
+    transform: translate(-50%, -50%) scale(0.74);
+    transition: transform 90ms var(--ease-out);
+  }
+
+  @keyframes sc-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .star-cursor-head[data-mode="star"] .sc-star path { animation: none; }
+  }
 }
 
 @utility bg-wash-soft {
