@@ -3,13 +3,18 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { TweaksPanel } from "@/components/TweaksPanel";
-import { TweaksProvider } from "@/lib/tweaks";
 
 export const metadata: Metadata = {
-  title: "ARTémis Records — Label musical · Paris",
+  title: "ARTémis Records · Label musical · Paris",
   description:
     "Label français dédié aux artistes émergents. Respect du travail, des conditions et du bien-être.",
+  icons: {
+    icon: [
+      // Icône sombre sur thème clair, icône claire sur thème sombre.
+      { url: "/icon-fonce.png", media: "(prefers-color-scheme: light)" },
+      { url: "/icon-clair.png", media: "(prefers-color-scheme: dark)" },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -28,14 +33,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <TweaksProvider>
-          <div className="min-h-screen flex flex-col">
-            <Nav />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <TweaksPanel />
-        </TweaksProvider>
+        <div className="min-h-screen flex flex-col">
+          <Nav />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
       </body>
     </html>
   );

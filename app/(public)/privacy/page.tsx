@@ -22,7 +22,7 @@ export default function PrivacyRoute() {
       </p>
       <h3>Vos droits</h3>
       <p>
-        Accès, rectification, effacement, opposition, portabilité — à tout
+        Accès, rectification, effacement, opposition, portabilité, à tout
         moment sur simple demande écrite à artemis.inscriptions@gmail.com.
       </p>
       <h3>Cookies</h3>

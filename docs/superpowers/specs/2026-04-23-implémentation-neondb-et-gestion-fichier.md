@@ -9,7 +9,7 @@
 
 ## 1. Contexte & motivation
 
-Aujourd'hui le site tourne 100 % statique : tout le contenu (`ARTISTS`, `NEWS`, `DEMOS`, `DEMANDS`, `SUBSCRIBERS`) est en dur dans `lib/data.ts` et `lib/adminData.ts`. Un backoffice est scaffoldé sous `app/backoffice/` avec des pages `artistes/`, `journal/`, `demos/`, `demandes/` + une page `auth/` — mais rien n'est persisté.
+Aujourd'hui le site tourne 100 % statique : tout le contenu (`ARTISTS`, `NEWS`, `DEMOS`, `DEMANDS`, `SUBSCRIBERS`) est en dur dans `lib/data.ts` et `lib/adminData.ts`. Un backoffice est scaffoldé sous `app/backoffice/` avec des pages `artistes/`, `journal/`, `demos/`, `demandes/` + une page `auth/`. Mais rien n'est persisté.
 
 **Objectifs de cette spec** :
 1. Rendre le contenu éditable via le backoffice (CRUD artistes, journal, réponses aux démos/demandes).
@@ -29,7 +29,7 @@ Aujourd'hui le site tourne 100 % statique : tout le contenu (`ARTISTS`, `NEWS`, 
 
 | Couche | Choix | Pourquoi |
 | --- | --- | --- |
-| **Base relationnelle** | **Neon** (Postgres serverless) via Vercel Marketplace | Auto-suspend après 5 min mais **réveil automatique** en ~500 ms — pas de pause manuelle. Free tier : 0.5 GB stockage, 190 h compute/mois. Branching git-like pour previews. |
+| **Base relationnelle** | **Neon** (Postgres serverless) via Vercel Marketplace | Auto-suspend après 5 min mais **réveil automatique** en ~500 ms. Pas de pause manuelle. Free tier : 0.5 GB stockage, 190 h compute/mois. Branching git-like pour previews. |
 | **Client DB** | **`drizzle-orm`** + `@neondatabase/serverless` | Typage fort (partage types avec Next.js), migrations versionnées, pas de runtime overhead façon Prisma. Driver HTTP serverless = zéro pool, compatible Fluid Compute. |
 | **Stockage fichiers** | **Vercel Blob** (public mode par défaut) | 1 GB gratuit + 10 GB bandwidth/mois. Intégration native (`@vercel/blob`), URLs signées en 2 lignes. Alternative : Cloudinary si on veut transformations (pas nécessaire ici, Next/Image suffit). |
 | **Auth backoffice** | **Clerk** (Marketplace Vercel) | Email + magic link suffisent pour 2-3 admins. Free tier : 10 000 MAU. Alternative plus légère : `next-auth` + table `users` dans Neon, à discuter. |
@@ -45,7 +45,7 @@ Aujourd'hui le site tourne 100 % statique : tout le contenu (`ARTISTS`, `NEWS`, 
 
 ## 3. Modèle de données
 
-Traduction directe des types TS existants (`lib/data.ts`, `lib/adminData.ts`) en tables Postgres. Les champs tableau / objet imbriqué (embeds, socials, tags, links) sont en **`jsonb`** — assez simples pour ne pas justifier de tables de jointure, assez structurés pour valider côté app.
+Traduction directe des types TS existants (`lib/data.ts`, `lib/adminData.ts`) en tables Postgres. Les champs tableau / objet imbriqué (embeds, socials, tags, links) sont en **`jsonb`**, assez simples pour ne pas justifier de tables de jointure, assez structurés pour valider côté app.
 
 ### 3.1. Tables principales
 
@@ -73,7 +73,7 @@ CREATE TABLE artists (
   updated_at    timestamptz NOT NULL DEFAULT now()
 );
 
--- Concerts (shows) — table séparée car queryable par date
+-- Concerts (shows), table séparée car queryable par date
 CREATE TABLE artist_shows (
   id          text PRIMARY KEY,
   artist_id   text NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
@@ -96,7 +96,7 @@ CREATE TABLE news (
   category    text NOT NULL,                -- "Sortie" | "Signature" | "Label" | ...
   title       text NOT NULL,
   excerpt     text NOT NULL,
-  body        text NOT NULL,                -- markdown ou HTML (à trancher — voir §10)
+  body        text NOT NULL,                -- markdown ou HTML (à trancher, voir §10)
   image_url   text NOT NULL,                -- Vercel Blob
   created_at  timestamptz NOT NULL DEFAULT now(),
   updated_at  timestamptz NOT NULL DEFAULT now()
@@ -150,7 +150,7 @@ CREATE TABLE subscribers (
   email         text NOT NULL UNIQUE,
   name          text,
   tags          jsonb NOT NULL DEFAULT '[]'::jsonb,
-  confirmed_at  timestamptz,                -- double opt-in — null = pas confirmé
+  confirmed_at  timestamptz,                -- double opt-in, null = pas confirmé
   unsubscribed_at timestamptz,
   subscribed_at timestamptz NOT NULL DEFAULT now()
 );
@@ -187,7 +187,7 @@ demos/{demoId}/{uuid}-{filename}        # mp3/wav/zip, usage privé
 moodboards/{uuid}.webp                  # déjà existant dans public/assets
 ```
 
-### 4.2. Upload — deux modes
+### 4.2. Upload : deux modes
 
 **Mode A · public (couvertures, portraits, moodboards)** :
 - Upload via Server Action depuis le backoffice.
@@ -202,7 +202,7 @@ moodboards/{uuid}.webp                  # déjà existant dans public/assets
 
 ### 4.3. Suppression
 
-Trigger applicatif : quand on delete un artiste / un article, on appelle `del(urls)` avant le `DELETE` SQL (dans la même Server Action, ordre : Blob d'abord, DB ensuite — si le Blob fail on ne casse pas la cohérence DB).
+Trigger applicatif : quand on delete un artiste / un article, on appelle `del(urls)` avant le `DELETE` SQL (dans la même Server Action, ordre : Blob d'abord, DB ensuite ; si le Blob fail on ne casse pas la cohérence DB).
 
 ### 4.4. Remplacement d'image
 
@@ -273,7 +273,7 @@ Les formulaires publics (`/demo`, `/contact`, `NewsletterBand`) appellent aussi 
 
 ### 6.3. Validation
 
-**Zod** côté Server Action (le seul endroit où ça compte — les données viennent d'Internet). Schémas co-localisés avec le schema Drizzle pour garder une source de vérité :
+**Zod** côté Server Action (le seul endroit où ça compte, les données viennent d'Internet). Schémas co-localisés avec le schema Drizzle pour garder une source de vérité :
 
 ```ts
 // lib/db/schema.ts
@@ -298,7 +298,7 @@ export const insertDemoSchema = createInsertSchema(demos, { email: z.string().em
 | **Preview** (PR) | branche Neon auto-créée par l'intégration Vercel | même que prod (public) / séparé (privé) | Clerk dev keys |
 | **Prod** | branche `main` Neon | `artemis-records-prod` | Clerk prod keys |
 
-Neon × Vercel provisionne automatiquement `DATABASE_URL` par environnement, et crée une **branche Neon éphémère par preview deployment** — ça veut dire : chaque PR = DB isolée qui hérite d'un snapshot, on peut tester sans risque.
+Neon × Vercel provisionne automatiquement `DATABASE_URL` par environnement, et crée une **branche Neon éphémère par preview deployment**. Ça veut dire : chaque PR = DB isolée qui hérite d'un snapshot, on peut tester sans risque.
 
 ### 7.2. Migrations
 
@@ -308,7 +308,7 @@ pnpm drizzle-kit generate   # diff schema → SQL
 pnpm drizzle-kit migrate    # applique sur $DATABASE_URL
 ```
 
-Hook `vercel-build` : `drizzle-kit migrate && next build` — les migrations tournent automatiquement sur chaque deploy (preview compris, grâce au branching).
+Hook `vercel-build` : `drizzle-kit migrate && next build`. Les migrations tournent automatiquement sur chaque deploy (preview compris, grâce au branching).
 
 ### 7.3. Seed
 
@@ -373,7 +373,7 @@ Script `scripts/seed.ts` qui importe les constantes existantes de `lib/data.ts` 
 1. **Format body journal** : markdown (parser côté serveur avec `remark`) ou HTML rich-text (éditeur type Tiptap dans le backoffice) ? → proposition : **markdown** (plus simple, versionnable, import facile).
 2. **Clerk vs next-auth** : Clerk = plus cher mais zéro maintenance. next-auth + table `users` = plus de code, mais 100 % gratuit et sous contrôle. Pour 2-3 admins, next-auth est probablement préférable → à trancher.
 3. **IDs artistes/articles** : garder des slugs humains (`caelya`, `alice-clip-devoile`) ou passer en UUID ? → **slugs** recommandés, URLs déjà publiques.
-4. **Conservation des données** : RGPD — abonnés newsletter (double opt-in, lien unsubscribe obligatoire), demandes (purge après 3 ans ?), démos refusées (purge après 1 an ?). À documenter dans `/privacy`.
+4. **Conservation des données** : RGPD, abonnés newsletter (double opt-in, lien unsubscribe obligatoire), demandes (purge après 3 ans ?), démos refusées (purge après 1 an ?). À documenter dans `/privacy`.
 5. **Notif email** : Resend via Marketplace (3000 emails/mois gratuits) pour : confirmation newsletter, accusé réception démo, notif admin nouvelle demande. À cadrer v1 vs v2.
 6. **Admin editing UX** : l'existant dans `app/backoffice/` est purement visuel aujourd'hui. Les Server Actions à plugger sur quels composants exactement ? À lister après lecture détaillée des pages backoffice.
 
@@ -381,7 +381,7 @@ Script `scripts/seed.ts` qui importe les constantes existantes de `lib/data.ts` 
 
 ## 11. Out of scope (noté pour plus tard)
 
-- Webhooks Spotify / YouTube (auto-sync discographie) — v2.
+- Webhooks Spotify / YouTube (auto-sync discographie) : v2.
 - Agenda Google Cal sync pour `artist_shows`.
 - Multi-langue (FR → EN).
 - Analytics contenu (quels articles / artistes sont le plus lus).
@@ -389,6 +389,6 @@ Script `scripts/seed.ts` qui importe les constantes existantes de `lib/data.ts` 
 
 ---
 
-## 12. Résumé — TL;DR
+## 12. Résumé : TL;DR
 
 **Neon (Postgres) + Drizzle + Vercel Blob + Clerk**, tout via Vercel Marketplace pour l'auto-provision des env vars. Migrations `drizzle-kit` lancées au build. Preview deploys utilisent des branches Neon isolées. Toutes les mutations passent par des Server Actions avec validation Zod. Assets visuels en Blob, URLs stockées en DB. Free tier suffisant pour 12-24 mois. Migration incrémentale en 7 étapes pour ne rien casser visuellement.

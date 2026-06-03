@@ -91,6 +91,15 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
               </a>
             ))}
           </div>
+          {artist.newsletterUrl && (
+            <div className="mt-8">
+              <Eyebrow>Newsletter</Eyebrow>
+              <div className="h-3" />
+              <Btn kind="primary" href={artist.newsletterUrl} newTab>
+                S&apos;inscrire à la newsletter de {artist.name}
+              </Btn>
+            </div>
+          )}
         </div>
         <aside>
           <Eyebrow>Discographie</Eyebrow>
@@ -190,7 +199,7 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
                   </div>
                   {s.free ? (
                     <span className="text-[11px] tracking-eyebrow uppercase text-ink-subtle font-bold px-1 py-3.5">
-                      —
+                      -
                     </span>
                   ) : (
                     <Btn kind="ghost" href={s.ticketUrl || "#"}>
@@ -237,7 +246,7 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
           Écrire au label
         </h2>
         <p className="italic text-[16px] text-ink-muted max-w-[480px] mx-auto mb-6">
-          Pour toute demande concernant {artist.name} — presse, booking,
+          Pour toute demande concernant {artist.name} : presse, booking,
           diffusion radio.
         </p>
         <Btn kind="primary" href="/contact">
