@@ -4,24 +4,26 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * Curseur visuel personnalisé. Par défaut : une étoile (sparkle de la marque)
- * qui suit la souris instantanément en laissant une traînée de comète.
+ * au cœur blanc lumineux qui suit la souris instantanément, en laissant une
+ * traînée qui épouse le tracé réellement parcouru par le curseur.
  *
  * La SEULE zone qui change la forme est l'image du hero (le carrousel, marqué
  * `data-cursor="hero"`) : selon la position horizontale, l'étoile morphe en
  * douceur vers une flèche « précédent » (gauche), « suivant » (droite), ou une
- * pastille invitant à cliquer (centre). Partout ailleurs — textes, panneau
- * hero, liens — c'est l'étoile.
+ * pastille invitant à cliquer (centre). Partout ailleurs c'est l'étoile.
  *
- * Désactivé sur pointeur grossier (tactile) et si prefers-reduced-motion : le
- * curseur natif reste alors visible.
+ * Désactivé sur pointeur grossier (tactile) et si prefers-reduced-motion.
  */
 
 type CursorMode = "star" | "arrow-left" | "arrow-right" | "view";
 
-// Nombre de segments de traînée (la tête est gérée à part, sans retard).
-const TRAIL = 6;
-// Interpolation de la traînée : plus bas = plus traînant.
-const EASE = 0.34;
+// Nombre de points de traînée (la tête est gérée à part, sans retard).
+const TRAIL = 18;
+// Écart, en frames, entre deux points consécutifs de la traînée. Plus l'écart
+// est grand, plus la traînée s'étire dans le temps.
+const GAP = 2;
+// Taille de l'historique de positions nécessaire pour alimenter la traînée.
+const HISTORY = (TRAIL + 1) * GAP;
 
 const STAR_PATH =
   "M12 0 L13.2 10.8 L24 12 L13.2 13.2 L12 24 L10.8 13.2 L0 12 L10.8 10.8 Z";
@@ -39,6 +41,14 @@ function resolveMode(el: Element | null, clientX: number): CursorMode {
   return "view";
 }
 
+function StarSvg({ size, className }: { size: number; className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" width={size} height={size}>
+      <path d={STAR_PATH} fill="url(#sc-star-grad)" />
+    </svg>
+  );
+}
+
 export function StarCursor() {
   const [mode, setMode] = useState<CursorMode>("star");
   const [enabled, setEnabled] = useState(false);
@@ -54,7 +64,8 @@ export function StarCursor() {
     document.documentElement.classList.add("star-cursor-active");
 
     const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    const nodes = Array.from({ length: TRAIL }, () => ({ ...mouse }));
+    // Historique des positions (plus récente en tête).
+    const history = Array.from({ length: HISTORY }, () => ({ ...mouse }));
     let visible = false;
     let raf = 0;
     let lastMode: CursorMode = "star";
@@ -89,22 +100,20 @@ export function StarCursor() {
     };
 
     const loop = () => {
-      // La traînée suit la souris avec retard (effet comète).
-      let px = mouse.x;
-      let py = mouse.y;
+      // On enregistre la position courante : l'historique mémorise le tracé.
+      history.unshift({ x: mouse.x, y: mouse.y });
+      if (history.length > HISTORY) history.pop();
+
       // On masque la traînée hors mode étoile (le carrousel a ses propres formes).
       const hidden = !visible || lastMode !== "star";
-      for (let i = 0; i < nodes.length; i++) {
-        const n = nodes[i];
-        n.x += (px - n.x) * EASE;
-        n.y += (py - n.y) * EASE;
-        px = n.x;
-        py = n.y;
+      for (let i = 0; i < TRAIL; i++) {
         const el = trailRefs.current[i];
         if (!el) continue;
-        const k = 1 - (i + 1) / (nodes.length + 1); // décroît vers la queue
-        el.style.transform = `translate3d(${n.x}px, ${n.y}px, 0) translate(-50%, -50%) scale(${0.85 * k})`;
-        el.style.opacity = hidden ? "0" : String(0.5 * k);
+        // Chaque point reprend une position passée réelle → la traînée suit le tracé.
+        const p = history[Math.min((i + 1) * GAP, history.length - 1)];
+        const k = 1 - i / TRAIL; // 1 (près de la tête) → ~0 (queue)
+        el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) scale(${0.35 + 0.55 * k})`;
+        el.style.opacity = hidden ? "0" : String(0.72 * k);
       }
       raf = requestAnimationFrame(loop);
     };
@@ -125,7 +134,19 @@ export function StarCursor() {
 
   return (
     <div className="star-cursor-root" aria-hidden="true">
-      {/* Traînée — petites étoiles qui suivent avec retard et s'estompent. */}
+      {/* Dégradé partagé : cœur blanc lumineux → magenta, pour faire briller. */}
+      <svg width="0" height="0" style={{ position: "absolute" }}>
+        <defs>
+          <radialGradient id="sc-star-grad" cx="50%" cy="50%" r="55%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="22%" stopColor="#ffe6f3" />
+            <stop offset="55%" stopColor="#d24a8e" />
+            <stop offset="100%" stopColor="#9F2063" />
+          </radialGradient>
+        </defs>
+      </svg>
+
+      {/* Traînée — étoiles qui rejouent le tracé du curseur et s'estompent. */}
       {Array.from({ length: TRAIL }).map((_, i) => (
         <div
           key={i}
@@ -135,17 +156,13 @@ export function StarCursor() {
           className="star-cursor-trail"
           style={{ opacity: 0 }}
         >
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d={STAR_PATH} fill="var(--color-magenta)" />
-          </svg>
+          <StarSvg size={20} />
         </div>
       ))}
 
       {/* Tête — étoile par défaut, morphe sur l'image du hero. */}
       <div ref={headRef} className="star-cursor-head" data-mode={mode} style={{ opacity: 0 }}>
-        <svg className="sc-shape sc-star" viewBox="0 0 24 24" width="26" height="26">
-          <path d={STAR_PATH} fill="var(--color-magenta)" />
-        </svg>
+        <StarSvg className="sc-shape sc-star" size={28} />
 
         <div className="sc-shape sc-arrow sc-arrow-left">
           <Chevron />
