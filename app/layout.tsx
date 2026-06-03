@@ -5,6 +5,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { TweaksPanel } from "@/components/TweaksPanel";
 import { TweaksProvider } from "@/lib/tweaks";
+import { StarCursor } from "@/components/StarCursor";
 
 export const metadata: Metadata = {
   title: "ARTémis Records — Label musical · Paris",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Footer />
           </div>
           <TweaksPanel />
+          <StarCursor />
         </TweaksProvider>
       </body>
     </html>

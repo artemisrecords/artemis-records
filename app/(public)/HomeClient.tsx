@@ -35,7 +35,10 @@ function HomeEditorial({
 }) {
   return (
     <div>
-      <section className="relative overflow-hidden bg-bleu-nuit-700 text-beige-sable px-[clamp(24px,4vw,56px)] py-[clamp(64px,9vw,110px)] h-[90vh] flex items-center">
+      <section
+        data-cursor="arrow"
+        className="relative overflow-hidden bg-bleu-nuit-700 text-beige-sable px-[clamp(24px,4vw,56px)] py-[clamp(64px,9vw,110px)] h-[90vh] flex items-center"
+      >
         <div className="stars" aria-hidden="true" />
         <div className="absolute top-10 right-10 opacity-35 z-10">
           <BowMark size={90} inverse />
