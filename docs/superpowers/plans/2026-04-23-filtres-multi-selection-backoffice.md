@@ -1,4 +1,4 @@
-# Filtres multi-sélection backoffice — Plan d'implémentation
+# Filtres multi-sélection backoffice : Plan d'implémentation
 
 > **Pour les agents** : ce plan est à exécuter tâche par tâche. Chaque étape est une case à cocher (`- [ ]`). Respecter l'ordre.
 
@@ -8,7 +8,7 @@
 
 **Architecture** : Un nouveau composant partagé `MultiPillFilter` dans `components/admin/`, consommé par les 3 pages existantes. État `Set<K>` vide ≡ « Tous » actif.
 
-**Tech stack** : Next.js 16 (App Router), React 19, TypeScript, Tailwind 4. Package manager : `pnpm`. Pas de framework de tests — vérification par `pnpm exec tsc --noEmit`, `pnpm lint`, et navigateur.
+**Tech stack** : Next.js 16 (App Router), React 19, TypeScript, Tailwind 4. Package manager : `pnpm`. Pas de framework de tests : vérification par `pnpm exec tsc --noEmit`, `pnpm lint`, et navigateur.
 
 **Contraintes du repo** :
 - Pas de tests automatisés → vérifications = typecheck + lint + test manuel navigateur
@@ -20,16 +20,16 @@
 ## Vue d'ensemble des fichiers
 
 **À créer** :
-- `components/admin/MultiPillFilter.tsx` — composant partagé
+- `components/admin/MultiPillFilter.tsx` : composant partagé
 
 **À modifier** :
-- `app/backoffice/demos/page.tsx` — 1 barre de filtres
-- `app/backoffice/contrats/page.tsx` — 1 barre de filtres
-- `app/backoffice/demandes/page.tsx` — 2 barres de filtres (variant `pill` + `subtle`)
+- `app/backoffice/demos/page.tsx` : 1 barre de filtres
+- `app/backoffice/contrats/page.tsx` : 1 barre de filtres
+- `app/backoffice/demandes/page.tsx` : 2 barres de filtres (variant `pill` + `subtle`)
 
 ---
 
-## Task 1 — Créer le composant `MultiPillFilter`
+## Task 1 : Créer le composant `MultiPillFilter`
 
 **Files:**
 - Create: `components/admin/MultiPillFilter.tsx`
@@ -156,12 +156,12 @@ Expected : 0 erreur/warning sur le nouveau fichier.
 
 ---
 
-## Task 2 — Migrer `/backoffice/demos`
+## Task 2 : Migrer `/backoffice/demos`
 
 **Files:**
 - Modify: `app/backoffice/demos/page.tsx`
 
-Contexte : la page a aujourd'hui un state `filter: Filter` (avec `Filter = "tous" | DemoStatus`). On passe à un `Set<DemoStatus>` (sans `"tous"`). Le reset de l'EmptyState appelait `setFilter("tous")` et `setQuery("")` — préserver ce double reset.
+Contexte : la page a aujourd'hui un state `filter: Filter` (avec `Filter = "tous" | DemoStatus`). On passe à un `Set<DemoStatus>` (sans `"tous"`). Le reset de l'EmptyState appelait `setFilter("tous")` et `setQuery("")`. Préserver ce double reset.
 
 - [ ] **Step 1 : Remplacer l'import et l'état**
 
@@ -269,7 +269,7 @@ Lancer `pnpm dev` (si pas déjà lancé) et ouvrir `http://localhost:3001/backof
 
 ---
 
-## Task 3 — Migrer `/backoffice/contrats`
+## Task 3 : Migrer `/backoffice/contrats`
 
 **Files:**
 - Modify: `app/backoffice/contrats/page.tsx`
@@ -320,7 +320,7 @@ Remplacer le bloc de la ligne 149 à 175 (les `<div className="flex items-center
 />
 ```
 
-Note : dans la version actuelle, seul « Tous » avait un compteur intégré au label (`Tous (${counts.tous})`). On uniformise en utilisant la prop `count` de `MultiPillFilter` pour toutes les pilules — c'est plus lisible et cohérent avec la page démos.
+Note : dans la version actuelle, seul « Tous » avait un compteur intégré au label (`Tous (${counts.tous})`). On uniformise en utilisant la prop `count` de `MultiPillFilter` pour toutes les pilules. C'est plus lisible et cohérent avec la page démos.
 
 - [ ] **Step 5 : Typecheck + lint**
 
@@ -336,14 +336,14 @@ Ouvrir `http://localhost:3001/backoffice/contrats`. Vérifier :
 
 1. Au chargement : « Tous » actif, les 6 contrats affichés, tous les compteurs visibles
 2. Cliquer « À signer » → filtre seul, 1 contrat affiché
-3. Cliquer « En vigueur » → deux filtres actifs simultanément, 3 contrats affichés (3 en vigueur + 1 à signer = 4 — vérifier que l'OR fonctionne)
+3. Cliquer « En vigueur » → deux filtres actifs simultanément, 3 contrats affichés (3 en vigueur + 1 à signer = 4, vérifier que l'OR fonctionne)
 4. Recliquer « En vigueur » → seul « À signer » actif
 5. Cliquer « Tous » → tout se déselectionne, 6 contrats
 6. Le hint italique est visible sous les pilules
 
 ---
 
-## Task 4 — Migrer `/backoffice/demandes`
+## Task 4 : Migrer `/backoffice/demandes`
 
 **Files:**
 - Modify: `app/backoffice/demandes/page.tsx`
@@ -447,7 +447,7 @@ Ouvrir `http://localhost:3001/backoffice/demandes`. Vérifier :
 
 ---
 
-## Task 5 — Vérification globale
+## Task 5 : Vérification globale
 
 - [ ] **Step 1 : Build complet**
 
@@ -458,9 +458,9 @@ Expected : build réussi, aucune erreur TypeScript, aucun warning critique sur l
 
 Dans un navigateur avec `pnpm dev`, parcourir les 3 pages en séquence :
 
-1. `/backoffice/demos` — combiner filtres + recherche, reset via EmptyState
-2. `/backoffice/contrats` — combiner 2–3 statuts
-3. `/backoffice/demandes` — combiner catégorie + statut
+1. `/backoffice/demos` : combiner filtres + recherche, reset via EmptyState
+2. `/backoffice/contrats` : combiner 2–3 statuts
+3. `/backoffice/demandes` : combiner catégorie + statut
 
 Vérifier le même hint italique sous chaque barre. Vérifier qu'aucune régression visuelle n'apparaît ailleurs sur la page (détail à droite, header, footer).
 
@@ -472,6 +472,6 @@ Sur chaque barre, vérifier que les boutons ont `aria-pressed="true"` quand acti
 
 ## Notes
 
-- Le composant `MultiPillFilter` utilise les classes Tailwind déjà présentes dans le projet — aucune nouvelle classe à définir dans `tailwind.config` / `globals.css`.
+- Le composant `MultiPillFilter` utilise les classes Tailwind déjà présentes dans le projet. Aucune nouvelle classe à définir dans `tailwind.config` / `globals.css`.
 - Si TypeScript râle sur le générique inféré à l'appel, typer explicitement : `<MultiPillFilter<DemoStatus, "tous">>`. L'inférence devrait suffire pour les 3 usages prévus.
 - Aucune migration de données / API : travail purement front.

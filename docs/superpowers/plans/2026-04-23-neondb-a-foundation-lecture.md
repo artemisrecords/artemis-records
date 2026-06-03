@@ -1,10 +1,10 @@
-# Plan A — Foundation DB & lecture (Neon + Drizzle + Blob)
+# Plan A : Foundation DB & lecture (Neon + Drizzle + Blob)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Remplacer les constantes statiques `lib/data.ts` / `lib/adminData.ts` par une base Neon Postgres (via Drizzle) + Vercel Blob pour les assets, sans changer le comportement visible du site (lecture seule, pas encore de CRUD backoffice ni de soumissions publiques).
 
-**Architecture:** Neon Postgres (HTTP serverless, `@neondatabase/serverless`) + Drizzle ORM pour le typage/migrations. Les images locales de `public/assets/` sont migrées vers Vercel Blob par un script de seed one-shot. Les pages Server Components (`/`, `/artists`, `/artists/[id]`, `/news`, `/news/[id]`) lisent la DB via un module `lib/db/queries.ts` avec les mêmes signatures `findArtist`/`findNews`/`getArtists`/`getNews` mais asynchrones. Les pages backoffice sont déjà non-fonctionnelles (visuel only) — on les laisse pointer sur `lib/data.ts` / `lib/adminData.ts` qui exportent des **stubs async** le temps du Plan B. Pas d'auth, pas de Server Actions d'écriture, pas de Cache Components (v1).
+**Architecture:** Neon Postgres (HTTP serverless, `@neondatabase/serverless`) + Drizzle ORM pour le typage/migrations. Les images locales de `public/assets/` sont migrées vers Vercel Blob par un script de seed one-shot. Les pages Server Components (`/`, `/artists`, `/artists/[id]`, `/news`, `/news/[id]`) lisent la DB via un module `lib/db/queries.ts` avec les mêmes signatures `findArtist`/`findNews`/`getArtists`/`getNews` mais asynchrones. Les pages backoffice sont déjà non-fonctionnelles (visuel only). On les laisse pointer sur `lib/data.ts` / `lib/adminData.ts` qui exportent des **stubs async** le temps du Plan B. Pas d'auth, pas de Server Actions d'écriture, pas de Cache Components (v1).
 
 **Tech Stack:** Next.js 16.2 App Router · Drizzle ORM · `@neondatabase/serverless` · `drizzle-kit` · `@vercel/blob` · `zod` + `drizzle-zod` · `tsx` (pour scripts) · Vercel CLI (setup env).
 
@@ -13,27 +13,27 @@
 ## File Structure
 
 ### Créations
-- `.env.example` — documente les env vars requises
-- `drizzle.config.ts` — config `drizzle-kit`
-- `lib/db/index.ts` — instance Drizzle sur client Neon HTTP
-- `lib/db/schema.ts` — tables Drizzle (artists, artist_shows, news, demos, demands, subscribers) + types exportés
-- `lib/db/queries.ts` — fonctions de lecture `getArtists`, `findArtist`, `getNews`, `findNews` (typing compatible avec l'existant)
-- `lib/db/migrations/` — SQL généré par `drizzle-kit generate` (engagé en git)
-- `scripts/seed.ts` — script one-shot : upload assets → Blob, INSERT données initiales
-- `scripts/tsconfig.json` — tsconfig autonome pour scripts hors Next
-- `docs/superpowers/plans/2026-04-23-neondb-a-foundation-lecture.md` — ce plan
+- `.env.example` : documente les env vars requises
+- `drizzle.config.ts` : config `drizzle-kit`
+- `lib/db/index.ts` : instance Drizzle sur client Neon HTTP
+- `lib/db/schema.ts` : tables Drizzle (artists, artist_shows, news, demos, demands, subscribers) + types exportés
+- `lib/db/queries.ts` : fonctions de lecture `getArtists`, `findArtist`, `getNews`, `findNews` (typing compatible avec l'existant)
+- `lib/db/migrations/` : SQL généré par `drizzle-kit generate` (engagé en git)
+- `scripts/seed.ts`, script one-shot : upload assets → Blob, INSERT données initiales
+- `scripts/tsconfig.json` : tsconfig autonome pour scripts hors Next
+- `docs/superpowers/plans/2026-04-23-neondb-a-foundation-lecture.md` : ce plan
 
 ### Modifications
-- `package.json` — deps + scripts `db:generate`, `db:migrate`, `db:seed`
-- `next.config.ts` — autoriser hostname `*.public.blob.vercel-storage.com` dans `images.remotePatterns`
-- `lib/data.ts` — ne contient plus que les types + `formatDate`, ré-exporte `findArtist`/`findNews` depuis `queries.ts`
-- `lib/adminData.ts` — ne contient plus que les types + labels, les arrays `DEMOS` / `DEMANDS` / `SUBSCRIBERS` deviennent des fonctions async `getDemos()` / `getDemands()` / `getSubscribers()` lisant la DB
-- `app/(public)/page.tsx`, `app/(public)/artists/page.tsx`, `app/(public)/artists/[id]/page.tsx`, `app/(public)/news/page.tsx`, `app/(public)/news/[id]/page.tsx` — lecture asynchrone depuis `queries.ts`, `generateStaticParams` devient async
-- `app/backoffice/**/page.tsx` — adapter les imports : les pages utilisent maintenant `await getXxx()` au lieu de `XXX` en import direct
-- `.gitignore` — déjà OK (ignore `.env*.local`)
+- `package.json` : deps + scripts `db:generate`, `db:migrate`, `db:seed`
+- `next.config.ts` : autoriser hostname `*.public.blob.vercel-storage.com` dans `images.remotePatterns`
+- `lib/data.ts` : ne contient plus que les types + `formatDate`, ré-exporte `findArtist`/`findNews` depuis `queries.ts`
+- `lib/adminData.ts` : ne contient plus que les types + labels, les arrays `DEMOS` / `DEMANDS` / `SUBSCRIBERS` deviennent des fonctions async `getDemos()` / `getDemands()` / `getSubscribers()` lisant la DB
+- `app/(public)/page.tsx`, `app/(public)/artists/page.tsx`, `app/(public)/artists/[id]/page.tsx`, `app/(public)/news/page.tsx`, `app/(public)/news/[id]/page.tsx` : lecture asynchrone depuis `queries.ts`, `generateStaticParams` devient async
+- `app/backoffice/**/page.tsx`, adapter les imports : les pages utilisent maintenant `await getXxx()` au lieu de `XXX` en import direct
+- `.gitignore` : déjà OK (ignore `.env*.local`)
 
 ### Suppressions / conservations
-- `public/assets/*.webp` — on **garde** les fichiers sur disque (pour rollback + fallback moodboards/logos), mais les références en DB pointeront vers Blob après seed.
+- `public/assets/*.webp` : on **garde** les fichiers sur disque (pour rollback + fallback moodboards/logos), mais les références en DB pointeront vers Blob après seed.
 
 ---
 
@@ -359,7 +359,7 @@ git commit -m "db: neon http client via drizzle"
 
 ---
 
-## Task 4 : STOP — prérequis utilisateur
+## Task 4 : STOP (prérequis utilisateur)
 
 - [ ] **Step 1 : Demander à l'utilisateur d'exécuter les prérequis** listés en tête de plan (installation Vercel CLI, `vercel link`, provisioning Neon + Blob via Marketplace, `vercel env pull .env.local`).
 
@@ -795,7 +795,7 @@ main().catch((err) => {
 - [ ] **Step 2 : Remplir les arrays `SEED_*`**
 
 Remplacer les `/* REMPLACÉ AU STEP 2 */` par les valeurs actuelles de :
-- `ARTISTS` (depuis `lib/data.ts` lignes 59–246) → `SEED_ARTISTS` (adapter `signed` → `signedYear`, `portrait`/`cover` → string tels quels, rien d'autre ne change — la conversion URL se fait à l'exécution)
+- `ARTISTS` (depuis `lib/data.ts` lignes 59–246) → `SEED_ARTISTS` (adapter `signed` → `signedYear`, `portrait`/`cover` → string tels quels, rien d'autre ne change, la conversion URL se fait à l'exécution)
 - `NEWS` (depuis `lib/data.ts` lignes 248–285) → `SEED_NEWS`
 - `DEMOS` (depuis `lib/adminData.ts` lignes 57–172) → `SEED_DEMOS`
 - `DEMANDS` (depuis `lib/adminData.ts` lignes 174–263) → `SEED_DEMANDS`
@@ -810,7 +810,7 @@ Run:
 pnpm exec tsc -p scripts/tsconfig.json
 ```
 
-Expected: pas d'erreur. Si le path `../lib/db/index` pose problème à cause de `"server-only"`, ajouter `import "server-only";` mock — en pratique `tsx` n'interprète pas `server-only` côté runtime, mais si blocage, commenter l'import et remettre au step 5 après le seed.
+Expected: pas d'erreur. Si le path `../lib/db/index` pose problème à cause de `"server-only"`, ajouter `import "server-only";` mock. En pratique `tsx` n'interprète pas `server-only` côté runtime, mais si blocage, commenter l'import et remettre au step 5 après le seed.
 
 - [ ] **Step 4 : Commit**
 
@@ -857,7 +857,7 @@ Dans le dashboard Vercel → Storage → Blob → parcourir l'arborescence `arti
 
 - [ ] **Step 4 : Commit d'une note si besoin**
 
-Pas de commit (rien n'a bougé en code) — juste noter dans le plan "seed OK le YYYY-MM-DD".
+Pas de commit (rien n'a bougé en code), juste noter dans le plan "seed OK le YYYY-MM-DD".
 
 ---
 
@@ -952,7 +952,7 @@ On s'attend à des erreurs du type :
 
 Noter la liste des fichiers à modifier (task 11).
 
-- [ ] **Step 3 : Commit (intentionnellement cassé — sera fixé task 11)**
+- [ ] **Step 3 : Commit (intentionnellement cassé, sera fixé task 11)**
 
 ```bash
 git add lib/data.ts
@@ -969,7 +969,7 @@ git commit -m "data: switch static exports to async DB queries (callers to fix n
 - Modify: `app/(public)/artists/[id]/page.tsx`
 - Modify: `app/(public)/news/page.tsx`
 - Modify: `app/(public)/news/[id]/page.tsx`
-- Modify: `components/ArtistCard.tsx`, `components/NewsCard.tsx`, `components/EmbedPlayer.tsx` (uniquement si renommages de champs impactent — sinon, props inchangées)
+- Modify: `components/ArtistCard.tsx`, `components/NewsCard.tsx`, `components/EmbedPlayer.tsx` (uniquement si renommages de champs impactent ; sinon, props inchangées)
 
 ### Step 1 : `app/(public)/page.tsx`
 
@@ -1083,7 +1083,7 @@ export type TeamMember = {
   avatar?: string;
 };
 
-// Team : reste hardcodé pour l'instant (pas encore de table users — Plan B)
+// Team : reste hardcodé pour l'instant (pas encore de table users, Plan B)
 export const TEAM: TeamMember[] = [
   { id: "u1", name: "Margaux Villeneuve", role: "Direction artistique", email: "margaux@artemis-records.fr" },
   { id: "u2", name: "Jules Antonin", role: "Production & tournées", email: "jules@artemis-records.fr" },
@@ -1126,7 +1126,7 @@ export const DEMAND_STATUS_LABEL = {
 
 Pour chacune des pages listées, changer les imports type `import { DEMOS } from "@/lib/adminData"` en `import { getDemos } from "@/lib/adminData"` et consommer via `await getDemos()` dans le composant (rendre le composant `async` s'il ne l'est pas). Idem `DEMANDS` → `getDemands()`, `SUBSCRIBERS` → `getSubscribers()`.
 
-Si une page est un Client Component (`"use client"`), **la transformer temporairement** : déplacer les imports data vers un wrapper server (ex: garder la page elle-même `"use client"`, créer `page.server.tsx` qui fetch et passe en props). **Alternative plus simple pour Plan A** : convertir en Server Component si le composant n'a pas de hooks — ce qui est le cas de la plupart des backoffice pages (elles affichent en lecture seule).
+Si une page est un Client Component (`"use client"`), **la transformer temporairement** : déplacer les imports data vers un wrapper server (ex: garder la page elle-même `"use client"`, créer `page.server.tsx` qui fetch et passe en props). **Alternative plus simple pour Plan A** : convertir en Server Component si le composant n'a pas de hooks, ce qui est le cas de la plupart des backoffice pages (elles affichent en lecture seule).
 
 **Pour chaque page backoffice**, la règle est : si elle contenait `const demos = DEMOS;`, écrire `const demos = await getDemos();` et marquer la fonction `async`. Les champs renommés (notamment `demos.received` → `demos.receivedAt: Date`) sont à convertir : `formatDate(d.receivedAt)` (la fonction accepte déjà un `Date` après Task 10).
 
@@ -1211,7 +1211,7 @@ git commit -m "plan-a: foundation DB + read path migrated to neon/blob" --allow-
 - ✅ §7.3 Seed → Tasks 7–8
 - ⏭️ §8.5 Auth+CRUD, §8.6 Soumissions → Plans B & C
 
-**Placeholder scan :** un seul `/* REMPLACÉ AU STEP 2 */` dans le seed, qui est une instruction explicite à l'exécutant pour copier les données existantes — c'est intentionnel, pas un placeholder oublié.
+**Placeholder scan :** un seul `/* REMPLACÉ AU STEP 2 */` dans le seed, qui est une instruction explicite à l'exécutant pour copier les données existantes. C'est intentionnel, pas un placeholder oublié.
 
 **Type consistency :** 
 - Champs renommés documentés dans Task 12 (`received` → `receivedAt`, `portrait` → `portraitUrl`, etc.).

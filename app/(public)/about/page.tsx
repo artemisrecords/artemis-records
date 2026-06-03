@@ -37,8 +37,8 @@ const buildWavePath = ({
 const VALUES = [
   ["Inclusivité", "Une safe place pour les personnes LGBTQIA+, handicapées, racisées, ou porteuses d'une différence."],
   ["Féminisme", "Nous nous engageons à mettre en avant les femmes, trop peu représentées dans l'industrie musicale."],
-  ["Climat", "Nous prenons au sérieux notre impact écologique — tournées raisonnées, productions sobres."],
-  ["Diversité", "Un catalogue pluriel — styles, identités, régions du monde."],
+  ["Climat", "Nous prenons au sérieux notre impact écologique : tournées raisonnées, productions sobres."],
+  ["Diversité", "Un catalogue pluriel : styles, identités, régions du monde."],
   ["Respect", "Le respect du travail, des conditions de travail, et des personnes."],
   ["Bienveillance", "Nous encourageons la communication, le respect et la bienveillance au quotidien."],
 ] as const;
@@ -73,7 +73,7 @@ export default function AboutPage() {
 
         {/* Stars masked to the wave shape. Wave SVG's 100x1000 viewBox is
             stretched to 220%x220% at top/left -60%, so the slice visible in
-            the section is the middle 100/220 on each axis — the mask viewBox
+            the section is the middle 100/220 on each axis. The mask viewBox
             is that exact slice, re-drawing the same path in white. */}
         {(() => {
           const f = 100 / 220;
@@ -133,8 +133,8 @@ export default function AboutPage() {
           </h2>
           <p className="text-[16px] leading-[1.75] max-w-[560px]">
             Créé en 2025 par <strong>Chloé</strong> et{" "}
-            <strong>Shanna Bourguignon</strong> — <em>Allicyone</em> et{" "}
-            <em>Caëlya</em> — deux cousines passionnées de musique, ARTémis
+            <strong>Shanna Bourguignon</strong> (<em>Allicyone</em> et{" "}
+            <em>Caëlya</em>), deux cousines passionnées de musique, ARTémis
             Records voit le jour en été 2025 et se positionne comme label
             engagé.
           </p>
@@ -145,8 +145,8 @@ export default function AboutPage() {
           </p>
         </div>
         <div
-          className="grain aspect-square w-[64%] mx-auto"
-          style={{ background: "center/cover no-repeat url(/assets/cousines.webp)" }}
+          className="aspect-[7/2] w-[88%] mx-auto"
+          style={{ background: "center/cover no-repeat url(/assets/logo-foncé.png)" }}
         />
       </section>
 
@@ -220,7 +220,7 @@ export default function AboutPage() {
       </section>
 
       {/* Manifeste + positionnement */}
-      <section className="bg-bleu-nuit-700 text-beige-sable px-[clamp(24px,4vw,56px)] py-[clamp(72px,9vw,110px)] grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-16">
+      <section className="bg-bleu-nuit-700 text-beige-sable px-[clamp(24px,4vw,56px)] py-[clamp(72px,9vw,110px)] grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-16 items-center">
         <div>
           <Eyebrow inverse className="!text-magenta">
             Manifeste
@@ -231,7 +231,7 @@ export default function AboutPage() {
           <p className="text-[16px] leading-[1.75] max-w-[620px] text-beige-sable/90">
             Le label est une structure qui accompagne les artistes émergents. Il
             est axé sur le respect du travail, des conditions de travail et du
-            bien-être des artistes — afin de pouvoir les accompagner au mieux
+            bien-être des artistes, afin de pouvoir les accompagner au mieux
             dans leurs projets.
           </p>
           <p className="text-[16px] leading-[1.75] max-w-[620px] text-beige-sable/90">
@@ -279,7 +279,7 @@ export default function AboutPage() {
           size="md"
         />
         <div className="h-10" />
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-7">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
           {VALUES.map(([h, p]) => (
             <div key={h} className="bg-white p-7 shadow-editorial-xs">
               <h4 className="font-display uppercase tracking-caps text-[18px] mb-3 text-magenta font-normal">

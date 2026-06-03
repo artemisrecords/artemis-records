@@ -6,14 +6,20 @@ import { Eyebrow, Wordmark } from "./Primitives";
 
 export const Footer = () => {
   const pathname = usePathname() || "/";
-  if (pathname === "/auth" || pathname.startsWith("/backoffice")) return null;
+  if (
+    pathname === "/auth" ||
+    pathname === "/accept-invitation" ||
+    pathname.startsWith("/backoffice") ||
+    pathname.startsWith("/espace")
+  )
+    return null;
   return (
   <footer className="bg-bleu-nuit-700 text-beige-sable font-serif grid grid-cols-[1.3fr_1fr_1fr_1fr] gap-10 px-[clamp(24px,4vw,56px)] pt-[72px] pb-9">
     <div>
       <Wordmark inverse size={22} />
       <p className="italic text-[13px] opacity-80 mt-[18px] leading-[1.65] max-w-[340px]">
         Label français dédié aux artistes émergents. Respect du travail, des
-        conditions et du bien-être — nos valeurs guident chaque signature.
+        conditions et du bien-être. Nos valeurs guident chaque signature.
       </p>
       <div className="mt-[18px] text-[11px] tracking-eyebrow uppercase font-bold opacity-55">
         « Viser la lune, retomber dans les étoiles. »

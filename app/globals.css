@@ -270,68 +270,6 @@
 }
 
 @layer components {
-  .tweaks-panel {
-    position: fixed;
-    right: 16px;
-    bottom: 16px;
-    z-index: 9999;
-    background: #1C1F4A;
-    color: #EDE0D4;
-    padding: 16px;
-    border-radius: 4px;
-    font-family: var(--font-serif);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
-    width: 280px;
-    max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 32px);
-    overflow-y: auto;
-  }
-  .tweaks-panel h4 {
-    margin: 0 0 12px;
-    font-family: var(--font-display);
-    font-size: 14px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: #9F2063;
-    font-weight: 400;
-  }
-  .tw-label {
-    font-size: 9px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: rgba(237, 224, 212, 0.6);
-    margin: 10px 0 6px;
-    display: block;
-    font-weight: 700;
-  }
-  .tw-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .tw-chip {
-    font-family: inherit;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    background: transparent;
-    color: #EDE0D4;
-    border: 1px solid rgba(237, 224, 212, 0.28);
-    padding: 6px 10px;
-    cursor: pointer;
-    font-weight: 700;
-    border-radius: 0;
-    transition: all 180ms;
-  }
-  .tw-chip:hover {
-    border-color: #9F2063;
-  }
-  .tw-chip.on {
-    background: #9F2063;
-    border-color: #9F2063;
-    color: #fff;
-  }
-
   .legal-body h3 {
     font-family: var(--font-display);
     text-transform: uppercase;
