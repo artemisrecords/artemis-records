@@ -119,48 +119,48 @@ export function StarCursor() {
     const loop = (now: number) => {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-      if (!visible || lastMode !== "star") {
-        // Sur l'image du hero / curseur sorti : on vide le buffer pour que la
-        // traînée reparte de zéro plutôt que de réapparaître d'un bloc.
-        if (points.length) points = [];
-        raf = requestAnimationFrame(loop);
-        return;
-      }
-
-      // On élague les points trop vieux (la traînée se résorbe à l'arrêt).
+      // On élague les points trop vieux : la traînée s'efface en douceur — à
+      // l'arrêt, comme en entrant sur l'image (où l'on cesse d'ajouter des
+      // points, sans coupure brutale ni réapparition ultérieure).
       while (points.length && now - points[points.length - 1].t > TTL) {
         points.pop();
       }
 
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      for (let i = 0; i < points.length - 1; i++) {
-        const a = points[i];
-        const b = points[i + 1];
-        const fade = Math.max(0, 1 - (now - b.t) / TTL); // 1 (tête) → 0 (queue)
-        if (fade <= 0) continue;
-        const w = MAX_WIDTH * fade;
+      if (visible && points.length >= 2) {
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        // Courbes quadratiques entre les milieux de segments → trait lissé.
+        for (let i = 1; i < points.length; i++) {
+          const p0 = points[i - 1];
+          const p1 = points[i];
+          const p2 = points[i + 1] ?? p1;
+          const start = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+          const end = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+          const fade = Math.max(0, 1 - (now - p1.t) / TTL); // 1 (tête) → 0 (queue)
+          if (fade <= 0) continue;
+          const w = MAX_WIDTH * fade;
 
-        // Halo + bords magenta.
-        ctx.shadowColor = "rgba(210, 74, 142, 0.85)";
-        ctx.shadowBlur = 8 * fade + 3;
-        ctx.strokeStyle = `rgba(190, 60, 125, ${0.55 * fade})`;
-        ctx.lineWidth = w * 2.3;
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.stroke();
+          // Halo + bords magenta.
+          ctx.shadowColor = "rgba(210, 74, 142, 0.85)";
+          ctx.shadowBlur = 8 * fade + 3;
+          ctx.strokeStyle = `rgba(190, 60, 125, ${0.55 * fade})`;
+          ctx.lineWidth = w * 2.3;
+          ctx.beginPath();
+          ctx.moveTo(start.x, start.y);
+          ctx.quadraticCurveTo(p1.x, p1.y, end.x, end.y);
+          ctx.stroke();
 
-        // Cœur blanc.
+          // Cœur blanc.
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.92 * fade})`;
+          ctx.lineWidth = Math.max(w * 0.85, 0.6);
+          ctx.beginPath();
+          ctx.moveTo(start.x, start.y);
+          ctx.quadraticCurveTo(p1.x, p1.y, end.x, end.y);
+          ctx.stroke();
+        }
         ctx.shadowBlur = 0;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.92 * fade})`;
-        ctx.lineWidth = Math.max(w * 0.85, 0.6);
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.stroke();
       }
-      ctx.shadowBlur = 0;
 
       raf = requestAnimationFrame(loop);
     };
