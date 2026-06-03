@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   AdminBtn,
@@ -10,6 +10,7 @@ import {
   AdminTextarea,
   Pill,
 } from "@/components/admin/AdminPrimitives";
+import { saveArtistNewsletter } from "@/app/backoffice/newsletter/actions";
 import type { Artist } from "@/lib/data";
 
 type Tab = "identite" | "bio" | "discographie" | "agenda" | "reseaux" | "medias";
@@ -26,6 +27,23 @@ const TABS: { k: Tab; label: string }[] = [
 export function ArtistEditClient({ artist }: { artist: Artist }) {
   const [tab, setTab] = useState<Tab>("identite");
   const [published, setPublished] = useState(artist.published);
+  const [newsletterUrl, setNewsletterUrl] = useState(artist.newsletterUrl ?? "");
+  const [nlStatus, setNlStatus] = useState<
+    { tone: "ok" | "error"; message: string } | null
+  >(null);
+  const [nlPending, startNlTransition] = useTransition();
+
+  const saveNewsletter = () => {
+    setNlStatus(null);
+    startNlTransition(async () => {
+      const res = await saveArtistNewsletter({ artistId: artist.id, url: newsletterUrl });
+      setNlStatus(
+        res.ok
+          ? { tone: "ok", message: "Lien enregistré." }
+          : { tone: "error", message: res.error },
+      );
+    });
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -275,7 +293,7 @@ export function ArtistEditClient({ artist }: { artist: Artist }) {
                           : "magenta"
                       }
                     >
-                      {s.status ?? "—"}
+                      {s.status ?? "-"}
                     </Pill>
                     <AdminBtn kind="ghost">Éditer</AdminBtn>
                   </li>
@@ -286,7 +304,40 @@ export function ArtistEditClient({ artist }: { artist: Artist }) {
 
           {tab === "reseaux" && (
             <>
-              <AdminEyebrow className="mb-4">Réseaux & plateformes</AdminEyebrow>
+              <AdminEyebrow className="mb-1">Newsletter de l&apos;artiste</AdminEyebrow>
+              <p className="font-serif italic text-[12px] text-ink-muted mb-3 leading-[1.55]">
+                Lien du formulaire d&apos;inscription du prestataire externe.
+                Affiché sur la fiche publique de l&apos;artiste.
+              </p>
+              <div className="flex gap-2 items-center mb-1.5">
+                <input
+                  type="url"
+                  value={newsletterUrl}
+                  onChange={(e) => setNewsletterUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full bg-paper-soft border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] text-ink outline-none focus:border-magenta transition-colors rounded-[2px]"
+                />
+                <AdminBtn
+                  kind="accent"
+                  onClick={saveNewsletter}
+                  className={nlPending ? "opacity-60" : ""}
+                >
+                  {nlPending ? "…" : "Enregistrer"}
+                </AdminBtn>
+              </div>
+              {nlStatus && (
+                <div
+                  className={`mb-2 font-serif text-[12px] ${
+                    nlStatus.tone === "ok" ? "text-vert-foret-700" : "text-magenta"
+                  }`}
+                >
+                  {nlStatus.message}
+                </div>
+              )}
+
+              <div className="mt-8 mb-4 border-t border-ink/10 pt-6">
+                <AdminEyebrow>Réseaux & plateformes</AdminEyebrow>
+              </div>
               {Object.entries(artist.socials).map(([k, v]) => (
                 <AdminField
                   key={k}

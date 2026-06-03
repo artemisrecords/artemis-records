@@ -22,7 +22,7 @@ export default function NouvelArticlePage() {
       <PageHeader
         eyebrow="Journal"
         title="Nouvelle entrée"
-        italic="Un nouveau billet — annonce, portrait, coulisses."
+        italic="Un nouveau billet : annonce, portrait, coulisses."
         actions={
           <>
             <AdminBtn kind="secondary">Enregistrer comme brouillon</AdminBtn>
@@ -33,7 +33,7 @@ export default function NouvelArticlePage() {
 
       <form className="grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-6 items-start">
         <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-7">
-          <AdminField label="Titre" placeholder="Une accroche courte — comme un titre de chapitre." />
+          <AdminField label="Titre" placeholder="Une accroche courte, comme un titre de chapitre." />
           <AdminField
             label="Chapô"
             placeholder="La première phrase. Elle doit tenir sur une ligne et donner envie."
