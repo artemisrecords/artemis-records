@@ -8,6 +8,13 @@ import {
   smallint,
   index,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth-schema";
+
+// Tables gérées par Better Auth (user/session/account/verification), générées
+// par `@better-auth/cli generate`. Ré-exportées ici pour que les clients db
+// (lib/db/index.ts, lib/db/auth-db.ts) et drizzle-kit voient tout le schéma
+// depuis un seul point d'entrée.
+export * from "./auth-schema";
 
 export type Embed = { type: "spotify" | "youtube"; title: string; src: string };
 export type DiscoItem = {
@@ -34,6 +41,7 @@ export const artists = pgTable("artists", {
   quote: text("quote"),
   bioShort: text("bio_short").notNull(),
   bioLong: text("bio_long").notNull(),
+  newsletterUrl: text("newsletter_url"),
   genres: jsonb("genres").$type<string[]>().notNull().default([]),
   socials: jsonb("socials").$type<Record<string, string>>().notNull().default({}),
   embeds: jsonb("embeds").$type<Embed[]>().notNull().default([]),
@@ -122,6 +130,12 @@ export const demands = pgTable(
   (t) => [index("demands_status_idx").on(t.status, t.receivedAt)],
 );
 
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const subscribers = pgTable("subscribers", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
@@ -132,6 +146,38 @@ export const subscribers = pgTable("subscribers", {
   subscribedAt: timestamp("subscribed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Invitations à l'espace label. Un compte ne se crée que par invitation
+ * (superadmin → admins, admin → artistes). À l'acceptation, on crée le `user`
+ * avec ce rôle (+ `artistId` pour un artiste) et on marque l'invitation acceptée.
+ */
+export const invitation = pgTable(
+  "invitation",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    role: text("role").notNull(),
+    // Renseigné seulement pour un compte artiste : la fiche à lier.
+    artistId: text("artist_id").references(() => artists.id, {
+      onDelete: "set null",
+    }),
+    token: text("token").notNull().unique(),
+    invitedBy: text("invited_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("invitation_token_idx").on(t.token),
+    index("invitation_email_idx").on(t.email),
+  ],
+);
+
+export type InvitationRow = typeof invitation.$inferSelect;
+export type NewInvitation = typeof invitation.$inferInsert;
+
 export type Artist = typeof artists.$inferSelect;
 export type NewArtist = typeof artists.$inferInsert;
 export type ArtistShow = typeof artistShows.$inferSelect;
@@ -139,3 +185,4 @@ export type NewsRow = typeof news.$inferSelect;
 export type DemoRow = typeof demos.$inferSelect;
 export type DemandRow = typeof demands.$inferSelect;
 export type SubscriberRow = typeof subscribers.$inferSelect;
+export type SettingRow = typeof settings.$inferSelect;
