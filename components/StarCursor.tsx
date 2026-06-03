@@ -11,18 +11,21 @@ import { useEffect, useRef, useState } from "react";
  * La SEULE zone qui change la forme est l'image du hero (le carrousel, marqué
  * `data-cursor="hero"`) : selon la position horizontale, l'étoile morphe en
  * douceur vers une flèche « précédent » (gauche), « suivant » (droite), ou une
- * pastille invitant à cliquer (centre). Partout ailleurs c'est l'étoile, et la
- * traînée ne s'affiche qu'en mode étoile.
+ * pastille invitant à cliquer (centre). La traînée ne s'affiche qu'en mode
+ * étoile, et repart de zéro en quittant l'image (pas de réapparition brutale).
  *
  * Désactivé sur pointeur grossier (tactile) et si prefers-reduced-motion.
  */
 
 type CursorMode = "star" | "arrow-left" | "arrow-right" | "view";
+type TrailPoint = { x: number; y: number; t: number };
 
-// Longueur de la traînée, en nombre de positions mémorisées (≈ frames).
-const TRAIL = 26;
+// Durée de vie d'un point de traînée (ms) : la traînée s'efface en douceur.
+const TTL = 340;
 // Épaisseur max du trait (à la tête), en px.
 const MAX_WIDTH = 5;
+// Garde-fou sur la taille du buffer (mouvements très rapides = beaucoup de points).
+const MAX_POINTS = 160;
 
 const STAR_PATH =
   "M12 0 L13.2 10.8 L24 12 L13.2 13.2 L12 24 L10.8 13.2 L0 12 L10.8 10.8 Z";
@@ -54,10 +57,9 @@ export function StarCursor() {
 
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    let dpr = window.devicePixelRatio || 1;
 
     const resize = () => {
-      dpr = window.devicePixelRatio || 1;
+      const dpr = window.devicePixelRatio || 1;
       canvas.width = Math.floor(window.innerWidth * dpr);
       canvas.height = Math.floor(window.innerHeight * dpr);
       canvas.style.width = window.innerWidth + "px";
@@ -67,8 +69,8 @@ export function StarCursor() {
     resize();
 
     const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    // Historique des positions (la plus récente en tête) = le tracé parcouru.
-    const history = Array.from({ length: TRAIL }, () => ({ ...mouse }));
+    // Tracé récent : points horodatés, le plus récent en tête.
+    let points: TrailPoint[] = [];
     let visible = false;
     let raf = 0;
     let lastMode: CursorMode = "star";
@@ -93,54 +95,72 @@ export function StarCursor() {
         lastMode = next;
         setMode(next);
       }
+      if (lastMode === "star") {
+        // On récupère TOUS les points intermédiaires (sub-frame) pour une
+        // trajectoire dense → trait lisse même sur un mouvement rapide.
+        let evs: PointerEvent[] =
+          typeof e.getCoalescedEvents === "function"
+            ? e.getCoalescedEvents()
+            : [];
+        if (!evs.length) evs = [e];
+        for (const ev of evs) {
+          points.unshift({ x: ev.clientX, y: ev.clientY, t: ev.timeStamp });
+        }
+        if (points.length > MAX_POINTS) points.length = MAX_POINTS;
+      }
     };
 
     const onLeave = () => {
       visible = false;
       if (headRef.current) headRef.current.style.opacity = "0";
+      points = [];
     };
 
-    const loop = () => {
-      // Mémorise la position courante : l'historique retient le tracé.
-      history.unshift({ x: mouse.x, y: mouse.y });
-      if (history.length > TRAIL) history.pop();
-
+    const loop = (now: number) => {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-      const draw = visible && lastMode === "star";
-      if (draw) {
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        // Un segment par couple de positions consécutives : trait continu qui
-        // s'affine et s'estompe de la tête vers la queue.
-        for (let i = 0; i < history.length - 1; i++) {
-          const a = history[i];
-          const b = history[i + 1];
-          const fade = 1 - i / (history.length - 1); // 1 (tête) → 0 (queue)
-          const w = MAX_WIDTH * fade;
-          if (w < 0.35) continue;
-
-          // Halo + bords magenta.
-          ctx.shadowColor = "rgba(210, 74, 142, 0.85)";
-          ctx.shadowBlur = 8 * fade + 3;
-          ctx.strokeStyle = `rgba(190, 60, 125, ${0.55 * fade})`;
-          ctx.lineWidth = w * 2.3;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
-
-          // Cœur blanc.
-          ctx.shadowBlur = 0;
-          ctx.strokeStyle = `rgba(255, 255, 255, ${0.92 * fade})`;
-          ctx.lineWidth = Math.max(w * 0.85, 0.6);
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
-        }
-        ctx.shadowBlur = 0;
+      if (!visible || lastMode !== "star") {
+        // Sur l'image du hero / curseur sorti : on vide le buffer pour que la
+        // traînée reparte de zéro plutôt que de réapparaître d'un bloc.
+        if (points.length) points = [];
+        raf = requestAnimationFrame(loop);
+        return;
       }
+
+      // On élague les points trop vieux (la traînée se résorbe à l'arrêt).
+      while (points.length && now - points[points.length - 1].t > TTL) {
+        points.pop();
+      }
+
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i];
+        const b = points[i + 1];
+        const fade = Math.max(0, 1 - (now - b.t) / TTL); // 1 (tête) → 0 (queue)
+        if (fade <= 0) continue;
+        const w = MAX_WIDTH * fade;
+
+        // Halo + bords magenta.
+        ctx.shadowColor = "rgba(210, 74, 142, 0.85)";
+        ctx.shadowBlur = 8 * fade + 3;
+        ctx.strokeStyle = `rgba(190, 60, 125, ${0.55 * fade})`;
+        ctx.lineWidth = w * 2.3;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+
+        // Cœur blanc.
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.92 * fade})`;
+        ctx.lineWidth = Math.max(w * 0.85, 0.6);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
 
       raf = requestAnimationFrame(loop);
     };
