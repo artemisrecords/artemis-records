@@ -30,7 +30,7 @@ const COMMANDS: CommandItem[] = [
   { id: "new-art", group: "Créer", label: "Signer un·e artiste", href: "/backoffice/artistes/nouveau", shortcut: "N A" },
   { id: "new-news", group: "Créer", label: "Nouvelle entrée journal", href: "/backoffice/journal/nouveau", shortcut: "N J" },
   { id: "new-show", group: "Créer", label: "Ajouter une date", href: "/backoffice/agenda", keywords: ["concert", "tournée"] },
-  { id: "new-camp", group: "Créer", label: "Nouvelle campagne newsletter", href: "/backoffice/newsletter" },
+  { id: "nwl-links", group: "Aller à", label: "Liens newsletter", href: "/backoffice/newsletter", keywords: ["formulaire", "inscription", "presta"] },
   // Utilities
   { id: "util-pub", group: "Outils", label: "Voir le site public", href: "/", keywords: ["front"] },
   { id: "util-logout", group: "Outils", label: "Se déconnecter", href: "/auth" },
@@ -136,7 +136,7 @@ export function CommandPalette({
                 Rien ne correspond
               </div>
               <div className="italic text-[13px] text-ink-muted mt-1">
-                Essayez un autre mot — artiste, démo, journal…
+                Essayez un autre mot : artiste, démo, journal…
               </div>
             </div>
           ) : (

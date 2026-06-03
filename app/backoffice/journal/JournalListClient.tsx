@@ -26,9 +26,9 @@ export function JournalListClient({ news }: { news: NewsItem[] }) {
     <div className="flex flex-col gap-6">
       <PageHeader
         chapter="05"
-        eyebrow={`Journal — ${news.length} articles`}
+        eyebrow={`Journal · ${news.length} articles`}
         title="Actualités du label"
-        italic="Sorties, signatures, coulisses, concerts — la voix du label, écrite de près."
+        italic="Sorties, signatures, coulisses, concerts. La voix du label, écrite de près."
         actions={
           <>
             <AdminBtn kind="secondary">Catégories</AdminBtn>

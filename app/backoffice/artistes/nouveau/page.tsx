@@ -22,7 +22,7 @@ export default function NouvelArtistePage() {
       <PageHeader
         eyebrow="Nouvelle signature"
         title="Créer une fiche artiste"
-        italic="L'essentiel d'abord — vous pourrez enrichir la fiche plus tard."
+        italic="L'essentiel d'abord. Vous pourrez enrichir la fiche plus tard."
       />
 
       <form className="grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-6 items-start">
@@ -51,7 +51,7 @@ export default function NouvelArtistePage() {
           <AdminTextarea
             label="Bio courte (≤ 280 caractères)"
             rows={3}
-            placeholder="Deux phrases qui donnent envie d'en savoir plus — une image, une tonalité, une promesse."
+            placeholder="Deux phrases qui donnent envie d'en savoir plus : une image, une tonalité, une promesse."
           />
           <AdminEyebrow className="mt-4 mb-3">Contact projet</AdminEyebrow>
           <div className="grid grid-cols-2 gap-4">

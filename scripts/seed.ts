@@ -9,6 +9,8 @@ import {
   demos,
   demands,
   subscribers,
+  settings,
+  user,
 } from "../lib/db/schema";
 
 type SeedArtist = {
@@ -24,6 +26,7 @@ type SeedArtist = {
   quote?: string;
   bioShort: string;
   bioLong: string;
+  newsletterUrl?: string;
   genres: string[];
   socials: Record<string, string>;
   embeds: { type: "spotify" | "youtube"; title: string; src: string }[];
@@ -51,7 +54,7 @@ const SEED_ARTISTS: SeedArtist[] = [
   {
     id: "caelya",
     name: "Caëlya",
-    tagline: "Folk mythologique — écritures boisées",
+    tagline: "Folk mythologique, écritures boisées",
     genre: "Folk · Pop onirique",
     signedYear: "2025",
     published: true,
@@ -61,9 +64,10 @@ const SEED_ARTISTS: SeedArtist[] = [
     quote: "J'écris en marchant dans les forêts qui n'existent plus.",
     bioShort:
       "Caëlya puise dans les mythes et la nature une pop folk sobre, portée par une voix feutrée.",
-    bioLong: `Caëlya rejoint ARTémis Records en 2025 avec un premier EP en préparation, *Les Ruisseaux*. Ses chansons, écrites en français, convoquent les figures féminines de la mythologie — Artémis, bien sûr, mais aussi Diane, Écho, les nymphes — pour raconter des histoires d'aujourd'hui. La production, volontairement dépouillée, laisse respirer la voix et les textes.
+    bioLong: `Caëlya rejoint ARTémis Records en 2025 avec un premier EP en préparation, *Les Ruisseaux*. Ses chansons, écrites en français, convoquent les figures féminines de la mythologie (Artémis, bien sûr, mais aussi Diane, Écho, les nymphes) pour raconter des histoires d'aujourd'hui. La production, volontairement dépouillée, laisse respirer la voix et les textes.
 
 Formée au conservatoire de Cergy, elle écrit depuis l'adolescence et se produit régulièrement en solo sur la scène francilienne. Un premier single, *Lune de cendre*, est attendu pour l'automne.`,
+    newsletterUrl: "https://caelya.substack.com/subscribe",
     genres: ["Folk", "Pop française", "Chanson"],
     socials: {
       instagram: "https://instagram.com",
@@ -80,7 +84,7 @@ Formée au conservatoire de Cergy, elle écrit depuis l'adolescence et se produi
       },
       {
         type: "youtube",
-        title: "Session acoustique — forêt de Marly",
+        title: "Session acoustique · forêt de Marly",
         src: "https://www.youtube.com/embed/jNQXAC9IVRw",
       },
     ],
@@ -137,7 +141,7 @@ Formée au conservatoire de Cergy, elle écrit depuis l'adolescence et se produi
   {
     id: "allicyone",
     name: "Allicyone",
-    tagline: "Pop française — voix intime, production chaleureuse",
+    tagline: "Pop française, voix intime, production chaleureuse",
     genre: "Pop française · Soul",
     signedYear: "2024",
     published: true,
@@ -145,12 +149,13 @@ Formée au conservatoire de Cergy, elle écrit depuis l'adolescence et se produi
     cover: "/assets/allicyone.webp",
     primaryColor: "#a87848",
     quote:
-      "J'écris ce que je n'ai pas réussi à dire — et je le chante pour l'entendre enfin.",
+      "J'écris ce que je n'ai pas réussi à dire, et je le chante pour l'entendre enfin.",
     bioShort:
       "Allicyone écrit une pop française feutrée, à la croisée de la soul et de la chanson à texte.",
-    bioLong: `Allicyone rejoint ARTémis Records en 2024 avec *Confidences*, un premier EP de sept titres. Les textes — littéraires, sans fard — racontent les liens, les doutes, la reconstruction. La production, signée au studio ARTémis, mêle piano acoustique, nappes synthétiques et arrangements de cordes discrets.
+    bioLong: `Allicyone rejoint ARTémis Records en 2024 avec *Confidences*, un premier EP de sept titres. Les textes (littéraires, sans fard) racontent les liens, les doutes, la reconstruction. La production, signée au studio ARTémis, mêle piano acoustique, nappes synthétiques et arrangements de cordes discrets.
 
 Le clip d'*Alice*, premier extrait de son prochain projet, marque une nouvelle direction : plus affirmée, plus lumineuse. Allicyone prépare une tournée des petites salles à l'automne 2026.`,
+    newsletterUrl: "https://allicyone.substack.com/subscribe",
     genres: ["Pop française", "Soul", "Chanson"],
     socials: {
       instagram: "https://instagram.com",
@@ -167,7 +172,7 @@ Le clip d'*Alice*, premier extrait de son prochain projet, marque une nouvelle d
       },
       {
         type: "youtube",
-        title: "Alice — clip officiel",
+        title: "Alice · clip officiel",
         src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
       },
       {
@@ -240,7 +245,7 @@ const SEED_NEWS = [
     published: true,
     date: "2026-04-02",
     category: "Sortie",
-    title: "Alice — le clip dévoilé",
+    title: "Alice : le clip dévoilé",
     excerpt:
       "Premier extrait du nouveau projet d'Allicyone, *Alice* pose la direction d'un deuxième EP plus lumineux.",
     body: "Texte complet à venir…",
@@ -264,9 +269,9 @@ const SEED_NEWS = [
     published: true,
     date: "2026-02-10",
     category: "Label",
-    title: "Un an d'ARTémis — bilan en sept images",
+    title: "Un an d'ARTémis : bilan en sept images",
     excerpt:
-      "Retour sur la première année d'activité du label — signatures, scènes, studio, rencontres.",
+      "Retour sur la première année d'activité du label : signatures, scènes, studio, rencontres.",
     body: "Texte complet à venir…",
     image:
       "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1400&q=80",
@@ -287,8 +292,8 @@ const SEED_DEMOS = [
     pitch:
       "Trois démos écrites en confinement, autour de la maternité et des nuits blanches. Voix feutrée, production maison, arrangements de cordes au clavier.",
     links: [
-      { label: "SoundCloud — EP démo", href: "#" },
-      { label: "Google Drive — stems", href: "#" },
+      { label: "SoundCloud · EP démo", href: "#" },
+      { label: "Google Drive · stems", href: "#" },
     ],
     tags: ["feutré", "écriture", "chanson"],
   },
@@ -304,7 +309,7 @@ const SEED_DEMOS = [
     status: "ecoute",
     pitch:
       "Single enregistré en live dans une grange. Guitare acoustique, voix, une fiddle discrète. Cherche un label pour sortir un premier EP à l'automne.",
-    links: [{ label: "Bandcamp — Single 'Brume'", href: "#" }],
+    links: [{ label: "Bandcamp · Single 'Brume'", href: "#" }],
     rating: 4,
     tags: ["live", "acoustique"],
     assignedTo: "Margaux",
@@ -322,8 +327,8 @@ const SEED_DEMOS = [
     pitch:
       "Projet très abouti, mastering pro. Références évidentes : Clara Luciani, Pomme, Angèle. Cherche un label pour accompagner une tournée des salles moyennes.",
     links: [
-      { label: "Spotify — EP 'Pellicule'", href: "#" },
-      { label: "YouTube — clip 'Sous la langue'", href: "#" },
+      { label: "Spotify · EP 'Pellicule'", href: "#" },
+      { label: "YouTube · clip 'Sous la langue'", href: "#" },
       { label: "Press kit PDF", href: "#" },
     ],
     rating: 5,
@@ -397,7 +402,7 @@ const SEED_DEMANDS = [
   {
     id: "rq-1089",
     category: "presse",
-    subject: "Interview Allicyone — Les Inrocks",
+    subject: "Interview Allicyone · Les Inrocks",
     name: "Léa Bertrand",
     org: "Les Inrockuptibles",
     email: "l.bertrand@lesinrocks.com",
@@ -410,7 +415,7 @@ const SEED_DEMANDS = [
   {
     id: "rq-1088",
     category: "booking",
-    subject: "Programmation festival — Printemps de Bourges 2027",
+    subject: "Programmation festival · Printemps de Bourges 2027",
     name: "Youssef Haddad",
     org: "Printemps de Bourges",
     email: "programmation@printemps-bourges.com",
@@ -423,19 +428,19 @@ const SEED_DEMANDS = [
   {
     id: "rq-1087",
     category: "partenariat",
-    subject: "Collab capsule — Maison Cler",
+    subject: "Collab capsule · Maison Cler",
     name: "Éloïse Ménard",
     org: "Maison Cler",
     email: "eloise@maison-cler.fr",
     received: "2026-04-20",
     message:
-      "Nous aimons beaucoup la direction artistique du label et aimerions vous proposer une collaboration — édition limitée et playlist curatée pour notre lancement d'automne.",
+      "Nous aimons beaucoup la direction artistique du label et aimerions vous proposer une collaboration : édition limitée et playlist curatée pour notre lancement d'automne.",
     status: "ouverte",
   },
   {
     id: "rq-1086",
     category: "licence",
-    subject: "Synchro — Arte documentaire",
+    subject: "Synchro · Arte documentaire",
     name: "Samuel Kiefer",
     org: "Arte France",
     email: "s.kiefer@arte.tv",
@@ -448,13 +453,13 @@ const SEED_DEMANDS = [
   {
     id: "rq-1085",
     category: "presse",
-    subject: "Portrait label — Libération",
+    subject: "Portrait label · Libération",
     name: "Clémentine Rey",
     org: "Libération",
     email: "c.rey@liberation.fr",
     received: "2026-04-16",
     message:
-      "Portrait pour la rubrique culture — focus sur les labels indépendants qui émergent hors des circuits majors.",
+      "Portrait pour la rubrique culture : focus sur les labels indépendants qui émergent hors des circuits majors.",
     status: "close",
     assignedTo: "Margaux",
   },
@@ -472,7 +477,7 @@ const SEED_DEMANDS = [
   {
     id: "rq-1083",
     category: "booking",
-    subject: "Première partie — Tournée Pomme 2027",
+    subject: "Première partie · Tournée Pomme 2027",
     name: "Salomé G.",
     org: "Asterios",
     email: "salome@asterios.fr",
@@ -512,6 +517,14 @@ const SEED_SUBSCRIBERS = [
     subscribed: "2026-03-29",
     tags: ["newsletter", "sorties"],
   },
+];
+
+const SEED_SETTINGS = [
+  {
+    key: "newsletter_signup_url",
+    value: "https://artemisrecords.substack.com/subscribe",
+  },
+  { key: "newsletter_dashboard_url", value: "https://substack.com/home" },
 ];
 
 const uploadCache = new Map<string, string>();
@@ -568,6 +581,7 @@ async function main() {
         quote: a.quote,
         bioShort: a.bioShort,
         bioLong: a.bioLong,
+        newsletterUrl: a.newsletterUrl,
         genres: a.genres,
         socials: a.socials,
         embeds: a.embeds,
@@ -588,6 +602,7 @@ async function main() {
           quote: a.quote,
           bioShort: a.bioShort,
           bioLong: a.bioLong,
+          newsletterUrl: a.newsletterUrl,
           genres: a.genres,
           socials: a.socials,
           embeds: a.embeds,
@@ -711,6 +726,47 @@ async function main() {
       })
       .onConflictDoNothing();
   }
+
+  console.log("▸ Seeding settings…");
+  for (const s of SEED_SETTINGS) {
+    await db
+      .insert(settings)
+      .values({ key: s.key, value: s.value })
+      .onConflictDoUpdate({
+        target: settings.key,
+        set: { value: s.value, updatedAt: new Date() },
+      });
+  }
+
+  // Premier superadmin : ne peut pas être invité (personne pour l'inviter).
+  // Connexion par magic link uniquement, donc pas de mot de passe ici : une
+  // ligne `user` suffit (Better Auth crée la session au clic du lien).
+  console.log("▸ Seeding superadmin…");
+  const SUPERADMIN_EMAIL =
+    process.env.SEED_SUPERADMIN_EMAIL ?? "matheuskopsguedes@gmail.com";
+  // Prénom « Super Admin », nom vide. `name` (nom complet) = prénom seul.
+  await db
+    .insert(user)
+    .values({
+      id: "usr-superadmin",
+      name: "Super Admin",
+      firstName: "Super Admin",
+      lastName: null,
+      email: SUPERADMIN_EMAIL,
+      emailVerified: true,
+      role: "superadmin",
+    })
+    .onConflictDoUpdate({
+      target: user.id,
+      set: {
+        name: "Super Admin",
+        firstName: "Super Admin",
+        lastName: null,
+        email: SUPERADMIN_EMAIL,
+        role: "superadmin",
+      },
+    });
+  console.log(`   superadmin → ${SUPERADMIN_EMAIL}`);
 
   console.log("✅ Seed done.");
 }

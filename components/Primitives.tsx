@@ -8,7 +8,7 @@ export const Wordmark = ({ inverse = false, size = 22 }: WordmarkProps) => (
     src={inverse ? "/assets/logo-clair.png" : "/assets/logo-foncé.png"}
     alt="ARTémis Records"
     style={{ height: size * 1.7 }}
-    className="w-auto block"
+    className="w-auto block transition-[height] duration-300 ease-out"
   />
 );
 
@@ -81,6 +81,7 @@ type BtnProps = {
   href?: string;
   className?: string;
   type?: "button" | "submit";
+  newTab?: boolean;
 };
 
 const BTN_BASE =
@@ -103,6 +104,7 @@ export const Btn = ({
   href,
   className = "",
   type = "button",
+  newTab = false,
 }: BtnProps) => {
   const classes = `${BTN_BASE} ${BTN_VARIANT[kind]} ${className}`;
   const content = (
@@ -115,7 +117,11 @@ export const Btn = ({
     const external = /^(https?:|mailto:|tel:|#)/.test(href);
     if (external) {
       return (
-        <a href={href} className={classes}>
+        <a
+          href={href}
+          className={classes}
+          {...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        >
           {content}
         </a>
       );

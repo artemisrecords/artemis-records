@@ -24,7 +24,7 @@ export default function ReglagesPage() {
         chapter="10"
         eyebrow="Préférences du backoffice"
         title="Réglages"
-        italic="Identité et équipe — la plomberie du label, tenue au propre."
+        italic="Identité et équipe. La plomberie du label, tenue au propre."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 items-start">

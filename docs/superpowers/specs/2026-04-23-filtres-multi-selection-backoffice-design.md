@@ -7,9 +7,9 @@
 
 Trois pages du backoffice utilisent des barres de filtres à boutons « pilules » fonctionnant en mono-sélection :
 
-- `/backoffice/demos` — une barre (Tous, Nouveaux, À écouter, Retenus, Refusés) avec compteurs
-- `/backoffice/demandes` — deux barres (catégories en pilules, statut en texte plus léger)
-- `/backoffice/contrats` — une barre (Tous, En vigueur, À signer, Échéance, Archivés)
+- `/backoffice/demos` : une barre (Tous, Nouveaux, À écouter, Retenus, Refusés) avec compteurs
+- `/backoffice/demandes` : deux barres (catégories en pilules, statut en texte plus léger)
+- `/backoffice/contrats` : une barre (Tous, En vigueur, À signer, Échéance, Archivés)
 
 Les trois pages ré-implémentent le même pattern de filtre et le même markup Tailwind. Il n'existe pas de composant partagé.
 
@@ -19,9 +19,9 @@ Permettre la sélection et désélection multiple sur tous les filtres concerné
 
 ## Non-objectifs
 
-- Persistance des filtres (URL, localStorage) — rien en place aujourd'hui, hors scope
-- Refonte visuelle des barres — on conserve strictement les styles existants
-- Filtres sur les autres pages du backoffice (agenda, artistes, compte, journal, newsletter, reglages, statistiques) — pas de barres de type pilule à transformer à ce jour
+- Persistance des filtres (URL, localStorage) : rien en place aujourd'hui, hors scope
+- Refonte visuelle des barres : on conserve strictement les styles existants
+- Filtres sur les autres pages du backoffice (agenda, artistes, compte, journal, newsletter, reglages, statistiques) : pas de barres de type pilule à transformer à ce jour
 
 ## Décisions de design
 
@@ -29,7 +29,7 @@ Permettre la sélection et désélection multiple sur tous les filtres concerné
 
 - L'état interne est un `Set<FilterKey>`.
 - **Invariant** : la clé « Tous » n'est jamais présente dans le `Set`. Le `Set` ne contient que des clés concrètes.
-- `Set` vide ≡ « Tous » actif — la liste affiche tout.
+- `Set` vide ≡ « Tous » actif. La liste affiche tout.
 - Cliquer « Tous » vide le `Set` ; « Tous » devient visuellement actif.
 - Cliquer un autre filtre le bascule (toggle) dans le `Set` ; « Tous » se désactive automatiquement (car le `Set` devient non-vide).
 - Si l'utilisateur décoche tous les autres filtres un par un, le `Set` redevient vide et « Tous » redevient actif naturellement.
@@ -48,11 +48,11 @@ Sous la rangée de pills, un hint en italique discret :
 
 Style : `font-serif italic text-[11px] text-ink-subtle mt-1.5`.
 
-Le texte est toujours visible (ne se masque pas après première interaction) — c'est la convention éditoriale du backoffice (phrases italiques courtes).
+Le texte est toujours visible (ne se masque pas après première interaction). C'est la convention éditoriale du backoffice (phrases italiques courtes).
 
 ### Rendu visuel
 
-- Chaque pilule active garde son style actuel (`bg-bleu-nuit-700 text-beige-sable`). Plusieurs pilules peuvent être dans cet état simultanément sans aucune adaptation visuelle — c'est lisible immédiatement.
+- Chaque pilule active garde son style actuel (`bg-bleu-nuit-700 text-beige-sable`). Plusieurs pilules peuvent être dans cet état simultanément sans aucune adaptation visuelle. C'est lisible immédiatement.
 - Pour la variante subtle (2e barre de `/demandes`), pilules actives en `text-magenta bg-magenta/10`, identique à l'existant.
 
 ## Architecture
@@ -114,7 +114,7 @@ Le paramètre générique séparé `A` (typiquement le littéral `"tous"`) perme
 
 #### `/backoffice/contrats` (`app/backoffice/contrats/page.tsx`)
 
-- Remplacer `useState<"tous" | ContractStatus>("tous")` par `useState<Set<ContractStatus>>(new Set())` (on exclut `"tous"` du type — invariant ci-dessus)
+- Remplacer `useState<"tous" | ContractStatus>("tous")` par `useState<Set<ContractStatus>>(new Set())` (on exclut `"tous"` du type, invariant ci-dessus)
 - Remplacer le bloc de boutons par `<MultiPillFilter all="tous" ...>` 
 - `filtered` useMemo devient : `selected.size === 0 ? CONTRACTS : CONTRACTS.filter(c => selected.has(c.status))`
 - Les compteurs `counts` restent calculés comme aujourd'hui (indépendants de la sélection)

@@ -1,4 +1,4 @@
-# ARTémis Records — site vitrine
+# ARTémis Records · site vitrine
 
 Site du label musical **ARTémis Records** (Paris · Menucourt, 2026), porté sur Next.js 16 + React 19 + Tailwind v4. Le design est issu d'un prototype HTML/CSS/JS exporté depuis [Claude Design](https://claude.ai/design) (bundle `art-mis-records-prototype`), ré‑implémenté pixel‑perfect en App Router.
 
@@ -12,7 +12,7 @@ Site du label musical **ARTémis Records** (Paris · Menucourt, 2026), porté su
 | Runtime | React 19 / TypeScript 5 |
 | Style | **Tailwind CSS v4** (config `@theme` dans le CSS, pas de fichier JS) |
 | Package manager | **pnpm** |
-| Rendering | Statique (SSG) — toutes les routes pré‑rendues au build |
+| Rendering | Statique (SSG), toutes les routes pré‑rendues au build |
 | Fonts | Catchy Mager (self‑host `/public/fonts`) · Italiana + Libre Baskerville (Google Fonts via `<link>` dans `<head>`) |
 
 Pas de base de données, pas d'auth, pas d'API côté serveur : tout le contenu est dans `lib/data.ts`. Le backoffice admin du prototype n'a pas été porté (hors scope de `index.html`).
@@ -41,9 +41,9 @@ app/
   page.tsx                # accueil (hero + roster + valeurs + journal)
   about/page.tsx          # manifeste, fondatrices, positionnement, valeurs
   artists/page.tsx        # roster filtrable (client component)
-  artists/[id]/page.tsx   # détail artiste — generateStaticParams
+  artists/[id]/page.tsx   # détail artiste, generateStaticParams
   news/page.tsx           # journal
-  news/[id]/page.tsx      # article — generateStaticParams
+  news/[id]/page.tsx      # article, generateStaticParams
   contact/page.tsx        # formulaire (client)
   demo/page.tsx           # soumission démo (client)
   charte/page.tsx         # charte graphique (logos, couleurs, type)
@@ -89,19 +89,19 @@ Les opacités s'écrivent à la Tailwind : `text-beige-sable/70`, `border-ink/15
 
 Dans `@layer utilities` :
 
-- `.stars` — scintillement d'étoiles 4 branches (SVG inline), z‑index 0, posé en absolute derrière le texte des héros. Variantes `.stars-dense` possibles.
-- `.grain` — overlay bruité subtil (mix‑blend multiply) pour les fonds image.
-- `.legal-body` — typographie des pages légales (h3 didone + p 62ch).
+- `.stars` : scintillement d'étoiles 4 branches (SVG inline), z‑index 0, posé en absolute derrière le texte des héros. Variantes `.stars-dense` possibles.
+- `.grain` : overlay bruité subtil (mix‑blend multiply) pour les fonds image.
+- `.legal-body` : typographie des pages légales (h3 didone + p 62ch).
 
 Animations : `twinkle-a` / `twinkle-b` (respecte `prefers-reduced-motion`).
 
 ### Accent dynamique par artiste
 
-Chaque artiste a un `primaryColor` (ex. Caëlya `#7800a8`). Dans `app/artists/[id]/page.tsx`, on réécrit `--color-magenta` en style inline sur la racine `<article>` — tous les enfants qui utilisent `text-magenta` / `bg-magenta` / `border-magenta` héritent automatiquement via la cascade CSS.
+Chaque artiste a un `primaryColor` (ex. Caëlya `#7800a8`). Dans `app/artists/[id]/page.tsx`, on réécrit `--color-magenta` en style inline sur la racine `<article>`. Tous les enfants qui utilisent `text-magenta` / `bg-magenta` / `border-magenta` héritent automatiquement via la cascade CSS.
 
 ---
 
-## Polices — notes de licence
+## Polices : notes de licence
 
 > ⚠️ **Catchy Mager** est une police de **Sensatype Studio** (2020), **gratuite en usage personnel**, **licence commerciale requise** pour la prod.
 
@@ -109,7 +109,7 @@ Le fichier `/public/fonts/CatchyMager.woff` est téléchargé depuis [CDNFonts](
 
 **Avant mise en prod publique** (domaine `artemisrecordslabel.com` ou équivalent) :
 
-1. Acheter une licence **web** chez Sensatype ([Creative Market](https://creativemarket.com/sensatype)) — typiquement 20–40 $ selon le tier de pageviews.
+1. Acheter une licence **web** chez Sensatype ([Creative Market](https://creativemarket.com/sensatype)), typiquement 20–40 $ selon le tier de pageviews.
 2. Remplacer `/public/fonts/CatchyMager.woff` par les fichiers reçus (souvent woff2 + woff).
 3. Stocker le PDF de licence hors‑repo (Drive / Notion) ; ne pas commiter.
 
@@ -130,11 +130,11 @@ Italiana + Libre Baskerville sont sous **SIL Open Font License** (libre, usage c
 
 Volontairement, pour rester dans le scope de `index.html` :
 
-- **Backoffice admin** (`admin.jsx`, `admin_editor.jsx`) — permettait d'éditer artistes/news via localStorage.
-- **Variantes de layout de la home** (`magazine`, `immersive`) — seule `editorial` est en place.
+- **Backoffice admin** (`admin.jsx`, `admin_editor.jsx`) : permettait d'éditer artistes/news via localStorage.
+- **Variantes de layout de la home** (`magazine`, `immersive`) : seule `editorial` est en place.
 - **Tweaks panel** (sélecteur live de thème, layouts, paramètres de vague).
-- **Persistance localStorage** via `ARStore` — le contenu est maintenant statique.
-- **Navigation side** — seule la navbar top.
+- **Persistance localStorage** via `ARStore` : le contenu est maintenant statique.
+- **Navigation side** : seule la navbar top.
 
 Tous sont restaurables à la demande.
 
@@ -143,8 +143,8 @@ Tous sont restaurables à la demande.
 ## Conventions
 
 - Pages statiques par défaut (Server Components) ; `"use client"` uniquement si interactif (formulaires, filtres, `NewsletterBand`).
-- Dynamic background‑image via `style={{ background: \`center/cover url(${x})\` }}` — Tailwind ne gère pas bien les URLs dynamiques.
-- Pas de CSS‑in‑JS, pas de styled‑components — tout est Tailwind + quelques utilitaires CSS globaux.
+- Dynamic background‑image via `style={{ background: \`center/cover url(${x})\` }}`. Tailwind ne gère pas bien les URLs dynamiques.
+- Pas de CSS‑in‑JS, pas de styled‑components. Tout est Tailwind + quelques utilitaires CSS globaux.
 - Les textes sont en français, les identifiants / types / clés sont en anglais (`Artist`, `findArtist`, etc.).
 
 ---
@@ -152,6 +152,6 @@ Tous sont restaurables à la demande.
 ## Crédits
 
 - Identité visuelle & charte : ARTémis Records (2025)
-- Prototype d'origine : export Claude Design — bundle `art-mis-records-prototype`
+- Prototype d'origine : export Claude Design, bundle `art-mis-records-prototype`
 - Moodboards & photos fondatrices : `public/assets/`
 - Police display : Catchy Mager © Sensatype Studio

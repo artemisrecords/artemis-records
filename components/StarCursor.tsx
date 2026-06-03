@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
  * demandé une réduction des animations — le curseur natif reste alors visible.
  */
 
-type CursorMode = "star" | "arrow" | "text";
+type CursorMode = "star" | "arrow" | "text" | "none";
 
 // Nombre de segments de traînée (le 1er nœud est la tête/étoile principale).
 const TRAIL = 7;
@@ -36,6 +36,8 @@ const MEDIA_TAGS = new Set(["img", "picture", "video", "svg"]);
 
 function resolveMode(el: Element | null): CursorMode {
   if (!el) return "star";
+  // Zone qui gère son propre curseur (ex. carrousel hero) : on s'efface.
+  if (el.closest("[data-cursor='none']")) return "none";
   // Les surfaces cliquables gardent l'étoile (affordance ludique) et priment
   // sur le texte qu'elles contiennent (libellés de boutons/liens).
   if (el.closest(INTERACTIVE)) return "star";
@@ -115,13 +117,14 @@ export function StarCursor() {
         const h = nodes[0];
         head.style.transform = `translate3d(${h.x}px, ${h.y}px, 0) translate(-50%, -50%)`;
       }
+      const hidden = !visible || lastMode === "none";
       for (let i = 1; i < nodes.length; i++) {
         const el = trailRefs.current[i - 1];
         if (!el) continue;
         const n = nodes[i];
         const k = 1 - i / nodes.length; // décroît vers la queue
         el.style.transform = `translate3d(${n.x}px, ${n.y}px, 0) translate(-50%, -50%) scale(${0.85 * k})`;
-        el.style.opacity = visible ? String(0.5 * k) : "0";
+        el.style.opacity = hidden ? "0" : String(0.5 * k);
       }
       raf = requestAnimationFrame(loop);
     };

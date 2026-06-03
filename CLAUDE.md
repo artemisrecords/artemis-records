@@ -7,31 +7,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Package manager is **pnpm**. Node ≥ 20.
 
 ```bash
-pnpm dev          # Next dev server (Turbopack) — http://localhost:3000
-pnpm build        # runs drizzle-kit migrate THEN next build — needs DATABASE_URL + migrations
+pnpm dev          # Next dev server (Turbopack): http://localhost:3000
+pnpm build        # runs drizzle-kit migrate THEN next build: needs DATABASE_URL + migrations
 pnpm start        # serve prod build
 pnpm lint         # next lint
 
-pnpm db:generate  # drizzle-kit generate — emit new migration from lib/db/schema.ts
+pnpm db:generate  # drizzle-kit generate: emit new migration from lib/db/schema.ts
 pnpm db:migrate   # apply migrations (reads DATABASE_URL from .env.local via dotenv)
 pnpm db:studio    # drizzle-kit studio UI
-pnpm db:seed      # tsx scripts/seed.ts — NOTE: scripts/seed.ts does not yet exist
+pnpm db:seed      # tsx scripts/seed.ts. NOTE: scripts/seed.ts does not yet exist
 ```
 
 `pnpm build` currently fails if `lib/db/migrations/` is empty or `DATABASE_URL` is unset. Run `vercel env pull .env.local` then `pnpm db:generate` before the first build.
 
-Env vars (see `.env.example`): `DATABASE_URL` (Neon Postgres, Vercel Marketplace) and `BLOB_READ_WRITE_TOKEN` (Vercel Blob). The Vercel project is already linked — `.vercel/project.json` is committed.
+Env vars (see `.env.example`): `DATABASE_URL` (Neon Postgres, Vercel Marketplace) and `BLOB_READ_WRITE_TOKEN` (Vercel Blob). The Vercel project is already linked. `.vercel/project.json` is committed.
 
 ## Architecture
 
 ### Route groups: public site vs. backoffice
 
-- `app/(public)/` — marketing site (home, `/about`, `/artists`, `/artists/[id]`, `/news`, `/news/[id]`, `/contact`, `/demo`, `/auth`, `/charte`, `/legal`, `/privacy`, `/cgu`). Wrapped by the root layout's `Nav` + `Footer` via `app/layout.tsx`.
-- `app/backoffice/` — admin panel (`artistes/`, `journal/`, `demos/`, `demandes/`, `agenda/`, `contrats/`, `newsletter/`, `statistiques/`, `reglages/`, `compte/`). Wrapped by `app/backoffice/layout.tsx` → `AdminChrome` (sidebar + topbar + command palette, ⌘K). No auth guard yet — the `/auth` page is UI-only.
+- `app/(public)/`: marketing site (home, `/about`, `/artists`, `/artists/[id]`, `/news`, `/news/[id]`, `/contact`, `/demo`, `/auth`, `/charte`, `/legal`, `/privacy`, `/cgu`). Wrapped by the root layout's `Nav` + `Footer` via `app/layout.tsx`.
+- `app/backoffice/`: admin panel (`artistes/`, `journal/`, `demos/`, `demandes/`, `agenda/`, `contrats/`, `newsletter/`, `statistiques/`, `reglages/`, `compte/`). Wrapped by `app/backoffice/layout.tsx` → `AdminChrome` (sidebar + topbar + command palette, ⌘K). No auth guard yet. The `/auth` page is UI-only.
 
 Both groups share the root `<html>` shell. Path alias `@/*` → repo root.
 
-### Data layer — mid-migration
+### Data layer: mid-migration
 
 The README still says "pas de base de données" but the repo is mid-transition to Neon + Drizzle. Current state:
 
@@ -43,7 +43,7 @@ The README still says "pas de base de données" but the repo is mid-transition t
 
 See `docs/superpowers/specs/2026-04-23-implémentation-neondb-et-gestion-fichier.md` for the full migration plan (Neon rationale, Blob layout, Clerk auth TBD).
 
-### Tailwind v4 — tokens live in CSS, not a config file
+### Tailwind v4: tokens live in CSS, not a config file
 
 No `tailwind.config.js`. All design tokens (`--color-bleu-nuit-*`, `--color-beige-sable-*`, `--color-magenta`, fonts, letter-spacing, shadows) are declared in the `@theme` block of `app/globals.css`. To add/tweak a color or token, edit that file.
 
@@ -57,25 +57,23 @@ Custom utilities (`.stars`, `.grain`, `.legal-body`, twinkle keyframes) live und
 const rootStyle = artist.primaryColor ? { ['--color-magenta' as string]: artist.primaryColor } : {};
 ```
 
-Every descendant that uses `text-magenta` / `bg-magenta` / `border-magenta` picks up the artist's color through CSS cascade. Don't "fix" these classes to hex values — the cascade is the feature.
+Every descendant that uses `text-magenta` / `bg-magenta` / `border-magenta` picks up the artist's color through CSS cascade. Don't "fix" these classes to hex values. The cascade is the feature.
 
 ### Client boundaries
 
-Default is Server Components. `"use client"` is used only for interactive surfaces: form pages (`contact`, `demo`, `auth`), roster filters, `NewsletterBand`, `TweaksPanel` (dev-only layout switcher with localStorage persistence via `lib/tweaks.tsx`), and most of `app/backoffice/**` (admin is client-heavy by design).
+Default is Server Components. `"use client"` is used only for interactive surfaces: form pages (`contact`, `demo`, `auth`), roster filters, `NewsletterBand`, and most of `app/backoffice/**` (admin is client-heavy by design).
 
-### Tweaks (dev-only panel)
-
-`TweaksProvider` + `TweaksPanel` in the root layout expose `homeLayout` (`editorial` | `magazine` | `immersive`) and `artistGrid` (`grid` | `list`) with localStorage persistence. Only `editorial` is implemented for home; `magazine`/`immersive` are stubs from the prototype.
+The home page is hardcoded to the "magazine" layout (`HomeClient`) and the `/artists` roster is hardcoded to the grid layout. A dev-only "Tweaks" layout switcher (`lib/tweaks.tsx` + `components/TweaksPanel.tsx`, localStorage-backed) used to live in the root layout; it has been removed.
 
 ## Conventions
 
 - **Language split**: user-facing copy in French, all identifiers/types/keys/commits in English. Preserve this when adding content.
-- **Dynamic background images**: use inline `style={{ background: \`center/cover url(${x})\` }}`, not Tailwind arbitrary values — Tailwind v4 doesn't handle runtime URLs.
-- **Fonts**: `font-display` = Catchy Mager (self-hosted at `/public/fonts/CatchyMager.woff`, **commercial license required before prod** — see README "Polices"); `font-serif` = Libre Baskerville; Italiana as display fallback. Both Google fonts loaded via `<link>` in `app/layout.tsx` head (not `next/font`).
-- **Specs/plans**: `docs/superpowers/specs/` holds design specs and `docs/superpowers/plans/` holds implementation plans. Check these before large changes — they capture rejected alternatives (e.g. why Neon over Supabase).
+- **Dynamic background images**: use inline `style={{ background: \`center/cover url(${x})\` }}`, not Tailwind arbitrary values. Tailwind v4 doesn't handle runtime URLs.
+- **Fonts**: `font-display` = Catchy Mager (self-hosted at `/public/fonts/CatchyMager.woff`, **commercial license required before prod**, see README "Polices"); `font-serif` = Libre Baskerville; Italiana as display fallback. Both Google fonts loaded via `<link>` in `app/layout.tsx` head (not `next/font`).
+- **Specs/plans**: `docs/superpowers/specs/` holds design specs and `docs/superpowers/plans/` holds implementation plans. Check these before large changes. They capture rejected alternatives (e.g. why Neon over Supabase).
 
 ## What's out of scope (intentionally)
 
 - No Edge runtime. Neon HTTP driver + Next default runtime. Fluid Compute is fine.
-- No i18n — single-locale (fr).
+- No i18n, single-locale (fr).
 - Auth is UI-mocked only; the `/auth` page doesn't authenticate anything, and `/backoffice/**` is publicly reachable in dev. Don't add secrets or PII flows until auth lands.

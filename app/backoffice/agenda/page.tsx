@@ -25,9 +25,9 @@ export default async function AgendaPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         chapter="06"
-        eyebrow={`Agenda — ${shows.length} dates`}
+        eyebrow={`Agenda · ${shows.length} dates`}
         title="Concerts & tournées"
-        italic="Planifier, suivre, annoncer — le calendrier vivant du label, soir par soir."
+        italic="Planifier, suivre, annoncer. Le calendrier vivant du label, soir par soir."
         actions={
           <>
             <AdminBtn kind="secondary">Exporter .ics</AdminBtn>
@@ -104,7 +104,7 @@ export default async function AgendaPage() {
                         : "magenta"
                     }
                   >
-                    {s.status ?? "—"}
+                    {s.status ?? "-"}
                   </Pill>
                   <button
                     type="button"

@@ -1,8 +1,28 @@
 import "server-only";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, inArray } from "drizzle-orm";
 import { db } from "./index";
-import { artists, artistShows, news } from "./schema";
+import { artists, artistShows, news, settings } from "./schema";
 import type { Artist, ArtistShow, NewsRow } from "./schema";
+
+export const NEWSLETTER_SIGNUP_KEY = "newsletter_signup_url";
+export const NEWSLETTER_DASHBOARD_KEY = "newsletter_dashboard_url";
+
+export type NewsletterSettings = {
+  signupUrl: string | null;
+  dashboardUrl: string | null;
+};
+
+export async function getNewsletterSettings(): Promise<NewsletterSettings> {
+  const rows = await db
+    .select()
+    .from(settings)
+    .where(inArray(settings.key, [NEWSLETTER_SIGNUP_KEY, NEWSLETTER_DASHBOARD_KEY]));
+  const byKey = new Map(rows.map((r) => [r.key, r.value]));
+  return {
+    signupUrl: byKey.get(NEWSLETTER_SIGNUP_KEY) ?? null,
+    dashboardUrl: byKey.get(NEWSLETTER_DASHBOARD_KEY) ?? null,
+  };
+}
 
 export type ArtistWithShows = Artist & { shows: ArtistShow[] };
 

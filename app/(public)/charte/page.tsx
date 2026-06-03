@@ -68,7 +68,7 @@ export default function ChartePage() {
               ARTÉMIS
             </div>
             <div className="text-[11px] italic text-ink-muted">
-              ABCDEFGHIJKLMNOPQRSTUVWXYZ — 0123456789
+              ABCDEFGHIJKLMNOPQRSTUVWXYZ · 0123456789
             </div>
             <div className="h-6" />
             <div className="text-[11px] tracking-eyebrow uppercase text-ink-subtle font-bold">

@@ -11,7 +11,7 @@ export default function CguRoute() {
       <h3>Usage</h3>
       <p>
         Le site est fourni à titre informatif. La consultation est libre et
-        gratuite. Vous vous engagez à un usage loyal et respectueux — pas de
+        gratuite. Vous vous engagez à un usage loyal et respectueux : pas de
         scraping massif, pas de contenu haineux dans les formulaires.
       </p>
       <h3>Responsabilité</h3>
