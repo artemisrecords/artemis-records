@@ -290,7 +290,7 @@
   .star-cursor-trail {
     z-index: 0;
     transition: opacity 240ms linear;
-    filter: drop-shadow(0 0 2px rgba(159, 32, 99, 0.4));
+    filter: drop-shadow(0 0 4px rgba(210, 74, 142, 0.55));
   }
 
   /* Toutes les formes sont empilées au même point ; on passe de l'une à l'autre
@@ -314,7 +314,9 @@
   }
 
   .star-cursor-head .sc-star {
-    filter: drop-shadow(0 1px 2px rgba(28, 31, 74, 0.35));
+    filter:
+      drop-shadow(0 0 6px rgba(210, 74, 142, 0.6))
+      drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
   }
   /* L'étoile tourne doucement en continu (sur le path, pour ne pas gêner le
      morphing porté par le transform du conteneur). */
