@@ -274,23 +274,20 @@
     contain: layout style;
   }
 
-  .star-cursor-head,
-  .star-cursor-trail {
+  .star-cursor-head {
     position: fixed;
     top: 0;
     left: 0;
     pointer-events: none;
     will-change: transform, opacity;
-  }
-
-  .star-cursor-head {
     z-index: 1;
     transition: opacity 200ms var(--ease-out);
   }
-  .star-cursor-trail {
+  .star-cursor-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
     z-index: 0;
-    transition: opacity 240ms linear;
-    filter: drop-shadow(0 0 4px rgba(210, 74, 142, 0.55));
   }
 
   /* Toutes les formes sont empilées au même point ; on passe de l'une à l'autre
