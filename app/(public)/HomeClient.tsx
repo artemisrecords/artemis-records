@@ -20,10 +20,7 @@ export function HomeClient({
   return (
     <div>
       <section className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] min-h-[84vh] items-stretch">
-        <div
-          data-cursor="arrow"
-          className="relative overflow-hidden bg-bleu-nuit-700 text-beige-sable px-[clamp(28px,4vw,56px)] py-[clamp(56px,7vw,96px)] flex flex-col justify-center"
-        >
+        <div className="relative overflow-hidden bg-bleu-nuit-700 text-beige-sable px-[clamp(28px,4vw,56px)] py-[clamp(56px,7vw,96px)] flex flex-col justify-center">
           <div className="stars" aria-hidden="true" />
           <div className="relative z-10">
             <Eyebrow inverse className="!text-magenta">
@@ -86,13 +83,9 @@ export function HomeClient({
   );
 }
 
-type CursorZone = "prev" | "next" | "view";
-
 function HeroCarousel({ artists }: { artists: Artist[] }) {
   const [slide, setSlide] = useState(0);
   const [hovering, setHovering] = useState(false);
-  const [zone, setZone] = useState<CursorZone | null>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
 
   // auto-advance, paused while the mouse is over the carousel
   useEffect(() => {
@@ -112,21 +105,10 @@ function HeroCarousel({ artists }: { artists: Artist[] }) {
 
   return (
     <div
-      data-cursor="none"
+      data-cursor="hero"
       className="relative overflow-hidden grain text-beige-sable min-h-[340px] cursor-none"
       onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => {
-        setHovering(false);
-        setZone(null);
-      }}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        // edge width must mirror the prev/next button widths below
-        const edge = Math.min(Math.max(rect.width * 0.18, 64), 140);
-        const x = e.clientX - rect.left;
-        setZone(x < edge ? "prev" : x > rect.width - edge ? "next" : "view");
-        setPos({ x: e.clientX, y: e.clientY });
-      }}
+      onMouseLeave={() => setHovering(false)}
     >
       {artists.map((a, i) => (
         <div
@@ -195,35 +177,6 @@ function HeroCarousel({ artists }: { artists: Artist[] }) {
         </div>
       )}
 
-      {/* custom cursor following the mouse */}
-      {zone && (
-        <div
-          aria-hidden
-          className="fixed z-[9990] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{ left: pos.x, top: pos.y }}
-        >
-          {zone === "view" ? (
-            <div className="rounded-full bg-magenta text-white font-serif text-[11px] tracking-eyebrow uppercase font-bold whitespace-nowrap px-4 py-2.5 shadow-[0_10px_28px_rgba(0,0,0,0.32)]">
-              Voir la page de l&apos;artiste
-            </div>
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-beige-sable text-bleu-nuit-700 flex items-center justify-center shadow-[0_10px_28px_rgba(0,0,0,0.32)]">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`w-5 h-5 ${zone === "prev" ? "-scale-x-100" : ""}`}
-              >
-                <line x1="4" y1="12" x2="20" y2="12" />
-                <polyline points="13 5 20 12 13 19" />
-              </svg>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
