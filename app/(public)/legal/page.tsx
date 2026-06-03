@@ -5,8 +5,8 @@ export default function LegalRoute() {
     <LegalPage title="MENTIONS LÉGALES" eyebrow="Information légale">
       <h3>Éditeur</h3>
       <p>
-        ARTémis Records — 22 rue des Épinettes, 95180 Menucourt, France.
-        Contact : artemis.inscriptions@gmail.com — 07 78 47 22 30.
+        ARTémis Records, 22 rue des Épinettes, 95180 Menucourt, France.
+        Contact : artemis.inscriptions@gmail.com · 07 78 47 22 30.
       </p>
       <h3>Directrice de publication</h3>
       <p>Alix M., fondatrice.</p>
@@ -24,7 +24,7 @@ export default function LegalRoute() {
       <h3>Crédits</h3>
       <p>
         Identité visuelle : charte graphique ARTémis Records (2025).
-        Typographies : Catchy Mager — Libre Baskerville. Photographies :
+        Typographies : Catchy Mager, Libre Baskerville. Photographies :
         artistes et contributeurs, tous droits réservés.
       </p>
     </LegalPage>

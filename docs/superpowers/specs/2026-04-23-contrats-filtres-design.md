@@ -1,4 +1,4 @@
-# Filtres de la page Contrats — refonte complète
+# Filtres de la page Contrats : refonte complète
 
 **Date** : 2026-04-23
 **Statut** : Design validé, prêt pour plan d'implémentation
@@ -20,11 +20,11 @@ Le spec `2026-04-23-filtres-multi-selection-backoffice-design.md` reste valable 
 
 ## Non-objectifs
 
-- Persistance en `localStorage` — l'URL suffit.
-- Migration vers un vrai backend — `CONTRACTS` reste une constante locale dans ce spec. L'architecture permettra le remplacement ultérieur sans changer l'UI.
-- Multi-sélection sur les axes autres que Statut — MVP mono-select. Peut être ajouté plus tard si besoin.
-- Refonte du tableau de résultats lui-même — hors scope.
-- Refonte des sections « Rappels à venir » et « Charte contractuelle » en bas de page — intactes.
+- Persistance en `localStorage` : l'URL suffit.
+- Migration vers un vrai backend : `CONTRACTS` reste une constante locale dans ce spec. L'architecture permettra le remplacement ultérieur sans changer l'UI.
+- Multi-sélection sur les axes autres que Statut : MVP mono-select. Peut être ajouté plus tard si besoin.
+- Refonte du tableau de résultats lui-même : hors scope.
+- Refonte des sections « Rappels à venir » et « Charte contractuelle » en bas de page : intactes.
 
 ## Décisions de design
 
@@ -93,7 +93,7 @@ Contient :
 - `deriveOptions(contracts)` → retourne `{ types: string[]; parties: string[]; years: string[] }` triés, dédupliqués. `type` est canonicalisé via `splitTypePrefix(raw)` qui renvoie le segment avant ` · ` (ex. `"Contrat d'artiste · 3 ans"` → `"Contrat d'artiste"`).
 - `countByStatus(contracts)` → `Record<ContractStatus, number>` + `total`.
 - `filterAndSort(contracts, params)` → `Contract[]` qui applique tous les axes (status Set, q normalisé, type, party, due, year) puis trie selon `sort`.
-- `parseAmount(raw: string) : number | null` utilisé par le tri : extrait la valeur numérique en euros (ignore les `%`, `50/50`, `—` qui deviennent `null` ; dans le tri `amount_desc`, les `null` vont en fin de liste).
+- `parseAmount(raw: string) : number | null` utilisé par le tri : extrait la valeur numérique en euros (ignore les `%`, `50/50`, `-` qui deviennent `null` ; dans le tri `amount_desc`, les `null` vont en fin de liste).
 
 ### `components/admin/StatusTiles.tsx`
 
@@ -149,12 +149,12 @@ type ContractFiltersProps = {
 
 Rendu en 2 rangées (ou 3 sur mobile) :
 
-**Rangée 1** — `flex flex-wrap items-center gap-3` :
-- Input recherche à gauche, `flex-1` min-width, icône loupe SVG inline. Débounce 150 ms sur `onQChange` (le débounce est géré côté consommateur pour rester simple — le composant appelle `onQChange` à chaque frappe, `page.tsx` débounce avant de pousser dans l'URL).
+**Rangée 1** (`flex flex-wrap items-center gap-3`) :
+- Input recherche à gauche, `flex-1` min-width, icône loupe SVG inline. Débounce 150 ms sur `onQChange` (le débounce est géré côté consommateur pour rester simple. Le composant appelle `onQChange` à chaque frappe, `page.tsx` débounce avant de pousser dans l'URL).
 - 5 `<select>` : Type, Partie, Échéance, Année, Tri. Classes communes : `font-serif text-[12px] tracking-[0.02em] uppercase font-bold px-3 py-2 rounded-[2px] border border-ink/15 bg-paper-soft text-ink hover:border-ink/40 appearance-none` + chevron custom via `background-image`.
 - Bouton reset `↻` à droite, visible uniquement si `hasActiveFilters`.
 
-**Rangée 2 (chips actives)** — s'affiche uniquement si `activeChips.length > 0` :
+**Rangée 2 (chips actives)**. S'affiche uniquement si `activeChips.length > 0` :
 - `flex flex-wrap items-center gap-2` avec label italique `« Filtres actifs : »` puis chaque chip = petit bouton avec `label ×` qui appelle `onRemove` au clic, puis un lien `« Réinitialiser »` à droite.
 
 ### `page.tsx`
@@ -252,7 +252,7 @@ Options = années distinctes extraites de `c.start.slice(0,4)`, triées desc. Fi
 - La rangée `<section className="grid grid-cols-1 sm:grid-cols-4 gap-4">` avec les 4 `<KPI />` est **supprimée**.
 - Le bloc `<div className="flex items-center gap-2 flex-wrap">` avec les 5 pills est **remplacé** par `<StatusTiles />`.
 - Les hints des 4 KPI (*« tout roster confondu »*, *« action requise »*, *« à renégocier »*, *« historique complet »*) deviennent les sous-titres italiques des 4 tuiles correspondantes. La tuile « Tous » reçoit *« tout statut confondu »*.
-- `KPI` (composant importé de `AdminPrimitives`) n'est plus utilisé par cette page ; on ne supprime pas le composant lui-même (il sert peut-être ailleurs — à vérifier au moment de l'implémentation).
+- `KPI` (composant importé de `AdminPrimitives`) n'est plus utilisé par cette page ; on ne supprime pas le composant lui-même (il sert peut-être ailleurs, à vérifier au moment de l'implémentation).
 
 ## Testing
 
@@ -275,8 +275,8 @@ Pas de suite de tests automatisés dans le repo. Vérification manuelle dans le 
 
 - **Débounce et URL** : `router.replace` à chaque frappe serait coûteux et polluerait l'historique même en `replace`. Le débounce 150 ms sur `q` est nécessaire.
 - **Hydratation SSR** : `useSearchParams` retourne un objet stable côté serveur et client, mais `new Date()` dans le filtre `due` peut produire un mismatch SSR/CSR si la page est prerendered. Solution : forcer le calcul du `due` dans un `useEffect` ou utiliser `"use client"` (déjà le cas dans `page.tsx` ligne 1).
-- **Sérialisation `Set` → CSV** : si un jour un statut contient une virgule, ça casse. Les 4 valeurs actuelles (`en_cours`, `a_signer`, `echu`, `archive`) n'en contiennent pas — OK.
-- **Canonicalisation de `type`** : `splitTypePrefix` suppose un séparateur ` · ` (espace + middle-dot + espace). Tous les contrats actuels respectent ce format. Si un futur contrat n'a pas de séparateur, la valeur entière est utilisée comme type — comportement acceptable.
+- **Sérialisation `Set` → CSV** : si un jour un statut contient une virgule, ça casse. Les 4 valeurs actuelles (`en_cours`, `a_signer`, `echu`, `archive`) n'en contiennent pas. OK.
+- **Canonicalisation de `type`** : `splitTypePrefix` suppose un séparateur ` · ` (espace + middle-dot + espace). Tous les contrats actuels respectent ce format. Si un futur contrat n'a pas de séparateur, la valeur entière est utilisée comme type. Comportement acceptable.
 - **Un contrat sans `party` ou `type`** n'est pas géré dans le type actuel (ce sont des champs obligatoires). Aucun guard défensif ajouté.
 
 ## Plan de livraison

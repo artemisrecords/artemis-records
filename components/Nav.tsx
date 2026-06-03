@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Wordmark } from "./Primitives";
 
 const LINKS = [
@@ -14,11 +15,36 @@ const LINKS = [
 
 export const Nav = () => {
   const pathname = usePathname() || "/";
-  if (pathname === "/auth" || pathname.startsWith("/backoffice")) return null;
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    // Hystérésis : on rétrécit au-delà de 80px, on ré-agrandit seulement
+    // en repassant sous 20px. La zone tampon évite l'oscillation au seuil.
+    const onScroll = () =>
+      setScrolled((prev) => {
+        const y = window.scrollY;
+        if (!prev && y > 80) return true;
+        if (prev && y < 20) return false;
+        return prev;
+      });
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (
+    pathname === "/auth" ||
+    pathname === "/accept-invitation" ||
+    pathname.startsWith("/backoffice") ||
+    pathname.startsWith("/espace")
+  )
+    return null;
   const inverse = pathname === "/";
   return (
     <nav
-      className={`flex items-center justify-between h-[100px] px-[clamp(24px,4vw,56px)] sticky top-0 z-50 border-b ${
+      className={`flex items-center justify-between px-[clamp(24px,4vw,56px)] sticky top-0 z-50 border-b transition-[height] duration-300 ease-out ${
+        scrolled ? "h-[68px]" : "h-[100px]"
+      } ${
         inverse
           ? "bg-bleu-nuit-700 border-beige-sable/20 text-beige-sable"
           : "bg-paper/70 border-ink/15 text-ink"
@@ -29,7 +55,7 @@ export const Nav = () => {
       }}
     >
       <Link href="/" className="cursor-pointer">
-        <Wordmark inverse={inverse} size={48} />
+        <Wordmark inverse={inverse} size={scrolled ? 34 : 48} />
       </Link>
       <div className="flex gap-[30px]">
         {LINKS.map((t) => {

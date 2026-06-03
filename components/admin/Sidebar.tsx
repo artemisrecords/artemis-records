@@ -4,6 +4,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Wordmark } from "@/components/Primitives";
+import { authClient } from "@/lib/auth-client";
+
+export type SessionUser = {
+  firstName?: string | null;
+  lastName?: string | null;
+  name?: string | null;
+  email: string;
+  role?: string | null;
+};
 
 type Item = {
   href: string;
@@ -11,6 +20,23 @@ type Item = {
   badge?: number;
   match: (p: string) => boolean;
 };
+
+const ROLE_LABELS: Record<string, string> = {
+  superadmin: "Direction du label",
+  admin: "Équipe label",
+  artiste: "Artiste",
+};
+
+/** Initiales : 1re lettre du prénom + 1re du nom, sinon 2 lettres du prénom. */
+function initials(firstName: string, lastName: string) {
+  const f = firstName.trim();
+  const l = lastName.trim();
+  if (f && l) return (f[0] + l[0]).toUpperCase();
+  const parts = (f || l).split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return "?";
+}
 
 const SECTIONS: { title: string; items: Item[] }[] = [
   {
@@ -94,16 +120,37 @@ const SECTIONS: { title: string; items: Item[] }[] = [
 ];
 
 export const Sidebar = ({
+  user,
   mobileOpen = false,
   onCloseMobile,
 }: {
+  user: SessionUser;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
-} = {}) => {
+}) => {
   const pathname = usePathname() || "";
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const authMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const firstName = user.firstName?.trim() ?? "";
+  const lastName = user.lastName?.trim() ?? "";
+  const displayName =
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    user.name?.trim() ||
+    user.email;
+  const subtitle = (user.role && ROLE_LABELS[user.role]) || user.email;
+
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    setAuthOpen(false);
+    onCloseMobile?.();
+    await authClient.signOut();
+    router.push("/");
+    router.refresh();
+  }
 
   useEffect(() => {
     if (!authOpen) return;
@@ -229,14 +276,14 @@ export const Sidebar = ({
         >
           <div className="stars opacity-40 pointer-events-none" aria-hidden />
           <div className="w-9 h-9 rounded-full bg-magenta text-white flex items-center justify-center font-display text-[14px] relative z-10 shrink-0">
-            MV
+            {initials(firstName || displayName, lastName)}
           </div>
           <div className="flex-1 min-w-0 relative z-10">
             <div className="font-serif text-[13px] font-bold truncate">
-              Margaux V.
+              {displayName}
             </div>
             <div className="italic text-[11px] text-beige-sable/70 truncate">
-              Direction artistique
+              {subtitle}
             </div>
           </div>
           <span
@@ -267,14 +314,11 @@ export const Sidebar = ({
             <button
               role="menuitem"
               type="button"
-              onClick={() => {
-                setAuthOpen(false);
-                onCloseMobile?.();
-                router.push("/");
-              }}
-              className="w-full text-left px-4 py-3 font-serif text-[13px] text-magenta hover:bg-paper-soft cursor-pointer"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="w-full text-left px-4 py-3 font-serif text-[13px] text-magenta hover:bg-paper-soft cursor-pointer disabled:opacity-60 disabled:cursor-wait"
             >
-              Se déconnecter
+              {signingOut ? "Déconnexion…" : "Se déconnecter"}
             </button>
           </div>
         )}

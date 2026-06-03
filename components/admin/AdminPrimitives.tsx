@@ -151,15 +151,17 @@ export const AdminBtn = ({
   type = "button",
   kind = "primary",
   className = "",
+  disabled = false,
 }: {
   children: ReactNode;
   onClick?: () => void;
   type?: "button" | "submit";
   kind?: "primary" | "secondary" | "ghost" | "danger" | "accent";
   className?: string;
+  disabled?: boolean;
 }) => {
   const base =
-    "font-serif text-[11px] tracking-[0.18em] uppercase font-bold inline-flex items-center gap-2 rounded-[2px] cursor-pointer transition-colors px-4 py-2.5";
+    "font-serif text-[11px] tracking-[0.18em] uppercase font-bold inline-flex items-center gap-2 rounded-[2px] cursor-pointer transition-colors px-4 py-2.5 disabled:opacity-60 disabled:cursor-wait";
   const variant = {
     primary:
       "bg-bleu-nuit-700 text-beige-sable hover:bg-bleu-nuit-800",
@@ -171,7 +173,12 @@ export const AdminBtn = ({
     accent: "bg-magenta text-white hover:opacity-90",
   }[kind];
   return (
-    <button type={type} onClick={onClick} className={`${base} ${variant} ${className}`}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${base} ${variant} ${className}`}
+    >
       {children}
     </button>
   );
@@ -324,7 +331,7 @@ export const PullQuote = ({
     </blockquote>
     {author && (
       <figcaption className="pl-8 mt-3 italic text-[13px] text-ink-muted">
-        — {author}
+        {author}
       </figcaption>
     )}
   </figure>
@@ -340,7 +347,7 @@ export const PageFooter = ({
   <footer className="mt-10 pt-6 border-t border-ink/15 flex items-center justify-between text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
     <span>ARTémis Records · Backoffice</span>
     {chapter && <span className="italic font-serif normal-case tracking-normal text-[11px] text-ink-muted">{chapter}</span>}
-    <span>— {page} —</span>
+    <span>{page}</span>
   </footer>
 );
 
