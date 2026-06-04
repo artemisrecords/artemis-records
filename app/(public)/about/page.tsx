@@ -71,22 +71,17 @@ export default function AboutPage() {
           <path d={d} fill="var(--color-bleu-nuit-700)" />
         </svg>
 
-        {/* Stars masked to the wave shape. Wave SVG's 100x1000 viewBox is
-            stretched to 220%x220% at top/left -60%, so the slice visible in
-            the section is the middle 100/220 on each axis. The mask viewBox
-            is that exact slice, re-drawing the same path in white. */}
+        {/* Stars masked to the wave shape. This layer mirrors the wave SVG
+            above 1:1 — same 220% box, same offset, same transform, same path
+            drawn in the same 100x1000 viewBox — so the stars fill the entire
+            blue wave, corners included, not just the section-sized slice. */}
         {(() => {
-          const f = 100 / 220;
-          const vx = (100 - 100 * f) / 2;
-          const vw = 100 * f;
-          const vy = (1000 - 1000 * f) / 2;
-          const vh = 1000 * f;
-          const maskSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='${vx} ${vy} ${vw} ${vh}' preserveAspectRatio='none'><path d='${d}' fill='white'/></svg>`;
+          const maskSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 1000' preserveAspectRatio='none'><path d='${d}' fill='white'/></svg>`;
           const maskUrl = `url("data:image/svg+xml;utf8,${encodeURIComponent(maskSvg)}")`;
           return (
             <div
               aria-hidden="true"
-              className="absolute inset-0 z-0 pointer-events-none"
+              className="absolute -top-[calc(60%+100px)] -left-[60%] w-[220%] h-[calc(220%+200px)] z-0 pointer-events-none overflow-hidden"
               style={{
                 transform: `rotate(${angle}deg)${flip ? " scaleY(-1)" : ""}`,
                 transformOrigin: "center",
@@ -100,7 +95,9 @@ export default function AboutPage() {
                 maskPosition: "center",
               }}
             >
-              <div className="stars stars-dense absolute inset-0" />
+              {/* Repeating star tiles that pan upward forever; the scroll and
+                  density live in .stars-dense / .stars-rise (globals.css). */}
+              <div className="stars stars-dense stars-rise absolute inset-0" />
             </div>
           );
         })()}
