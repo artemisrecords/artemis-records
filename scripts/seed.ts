@@ -61,50 +61,61 @@ const SEED_ARTISTS: SeedArtist[] = [
     portrait: "/assets/caelya.webp",
     cover: "/assets/caelya.webp",
     primaryColor: "#7800a8",
+    // TODO quote/bioShort/bioLong/tagline/genre/shows : encore fictifs, à remplacer par les vrais textes + dates du label
     quote: "J'écris en marchant dans les forêts qui n'existent plus.",
     bioShort:
       "Caëlya puise dans les mythes et la nature une pop folk sobre, portée par une voix feutrée.",
     bioLong: `Caëlya rejoint ARTémis Records en 2025 avec un premier EP en préparation, *Les Ruisseaux*. Ses chansons, écrites en français, convoquent les figures féminines de la mythologie (Artémis, bien sûr, mais aussi Diane, Écho, les nymphes) pour raconter des histoires d'aujourd'hui. La production, volontairement dépouillée, laisse respirer la voix et les textes.
 
 Formée au conservatoire de Cergy, elle écrit depuis l'adolescence et se produit régulièrement en solo sur la scène francilienne. Un premier single, *Lune de cendre*, est attendu pour l'automne.`,
-    newsletterUrl: "https://caelya.substack.com/subscribe",
+    newsletterUrl: "https://get.formulaire.info/form?p=E9FbbpNa",
     genres: ["Folk", "Pop française", "Chanson"],
     socials: {
-      instagram: "https://instagram.com",
-      youtube: "https://youtube.com",
-      tiktok: "https://tiktok.com",
-      spotify: "https://spotify.com",
-      bandcamp: "https://bandcamp.com",
+      instagram: "https://instagram.com/caelya_off",
+      youtube: "https://www.youtube.com/@CA%C3%8BLYAofficial",
+      tiktok: "https://www.tiktok.com/@caelya_off",
+      spotify: "https://open.spotify.com/artist/5ZHk2e2L8PPuJKLuMKPItp",
+      facebook: "https://www.facebook.com/people/Caëlya/61572844830789",
+      patreon: "https://patreon.com/caelya",
     },
     embeds: [
       {
         type: "spotify",
-        title: "Lune de cendre (extrait)",
-        src: "https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp",
+        title: "SOUVENIRS (EP)",
+        src: "https://open.spotify.com/embed/album/668VWNUYAvVY6tKggLNDh8",
       },
       {
         type: "youtube",
-        title: "Session acoustique · forêt de Marly",
-        src: "https://www.youtube.com/embed/jNQXAC9IVRw",
+        title: "Lune Calme · Clip officiel",
+        src: "https://www.youtube.com/embed/xw0BKRUgV78",
       },
     ],
+    // TODO années à confirmer (Spotify ne renvoie pas les dates de sortie)
     discography: [
       {
         id: "d1",
-        kind: "Single",
-        title: "Lune de cendre",
+        kind: "EP",
+        title: "SOUVENIRS",
         year: "2025",
         cover:
-          "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80",
+          "https://image-cdn-ak.spotifycdn.com/image/ab67616d0000b2736f3d64f289829aef5a5eb12e",
       },
       {
         id: "d2",
-        kind: "EP",
-        title: "Les Ruisseaux",
+        kind: "Single",
+        title: "STAR",
+        year: "2025",
+        cover:
+          "https://image-cdn-ak.spotifycdn.com/image/ab67616d0000b273df2ac6f2b028e48946629db4",
+      },
+      {
+        id: "d3",
+        kind: "Single",
+        title: "Saison de la mer",
         year: "2026",
         cover:
           "https://images.unsplash.com/photo-1502236317378-f5d8b74cca6d?w=600&q=80",
-        note: "À venir · automne 2026",
+        note: "À venir",
       },
     ],
     shows: [
@@ -148,6 +159,7 @@ Formée au conservatoire de Cergy, elle écrit depuis l'adolescence et se produi
     portrait: "/assets/allicyone.webp",
     cover: "/assets/allicyone.webp",
     primaryColor: "#a87848",
+    // TODO quote/bioShort/bioLong/tagline/genre/shows : encore fictifs, à remplacer par les vrais textes + dates du label
     quote:
       "J'écris ce que je n'ai pas réussi à dire, et je le chante pour l'entendre enfin.",
     bioShort:
@@ -155,56 +167,57 @@ Formée au conservatoire de Cergy, elle écrit depuis l'adolescence et se produi
     bioLong: `Allicyone rejoint ARTémis Records en 2024 avec *Confidences*, un premier EP de sept titres. Les textes (littéraires, sans fard) racontent les liens, les doutes, la reconstruction. La production, signée au studio ARTémis, mêle piano acoustique, nappes synthétiques et arrangements de cordes discrets.
 
 Le clip d'*Alice*, premier extrait de son prochain projet, marque une nouvelle direction : plus affirmée, plus lumineuse. Allicyone prépare une tournée des petites salles à l'automne 2026.`,
-    newsletterUrl: "https://allicyone.substack.com/subscribe",
+    newsletterUrl: "https://get.formulaire.info/form?p=k5DLu77P",
     genres: ["Pop française", "Soul", "Chanson"],
     socials: {
-      instagram: "https://instagram.com",
-      youtube: "https://youtube.com",
-      tiktok: "https://tiktok.com",
-      spotify: "https://spotify.com",
-      facebook: "https://facebook.com",
+      instagram: "https://instagram.com/allicyone",
+      youtube: "https://www.youtube.com/@Allicyone",
+      tiktok: "https://www.tiktok.com/@allicyone",
+      spotify: "https://open.spotify.com/artist/285mwpEqyCKT0Y3liIdR0q",
+      facebook: "https://www.facebook.com/profile.php?id=61575923956280",
     },
     embeds: [
       {
         type: "spotify",
         title: "Alice",
-        src: "https://open.spotify.com/embed/track/6rqhFgbbKwnb9MLmUQDhG6",
+        src: "https://open.spotify.com/embed/track/19pmxKlRw5FnuRNX3mXrZ7",
       },
       {
         type: "youtube",
         title: "Alice · clip officiel",
-        src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        src: "https://www.youtube.com/embed/QVJS9At8xAQ",
       },
       {
         type: "spotify",
         title: "Confidences (EP)",
-        src: "https://open.spotify.com/embed/album/0JGOiO34nwfUdDrD612dOp",
+        src: "https://open.spotify.com/embed/album/2f9jCzjKwm8GqhVyqn13fo",
       },
     ],
+    // TODO années à confirmer (Spotify ne renvoie pas les dates de sortie)
     discography: [
       {
         id: "d1",
         kind: "EP",
         title: "Confidences",
-        year: "2024",
+        year: "2025",
         cover:
-          "https://images.unsplash.com/photo-1446057032654-9d8885db76c6?w=600&q=80",
+          "https://image-cdn-fa.spotifycdn.com/image/ab67616d0000b273566958766c59c307374747f7",
       },
       {
         id: "d2",
         kind: "Single",
-        title: "Alice",
-        year: "2026",
+        title: "Yokohama",
+        year: "2025",
         cover:
-          "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
+          "https://image-cdn-fa.spotifycdn.com/image/ab67616d0000b273a74ffa4668838da60ccb5bce",
       },
       {
         id: "d3",
-        kind: "Clip",
-        title: "Alice (vidéo)",
-        year: "2026",
+        kind: "Single",
+        title: "Sad Kid",
+        year: "2025",
         cover:
-          "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600&q=80",
+          "https://image-cdn-fa.spotifycdn.com/image/ab67616d0000b27364ab43028b08b6adb02d490e",
       },
     ],
     shows: [
