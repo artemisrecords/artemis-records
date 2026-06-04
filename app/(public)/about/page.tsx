@@ -299,7 +299,7 @@ export default function AboutPage() {
           size="md"
         />
         <div className="h-8" />
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-10 max-w-[900px] mx-auto">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-10 max-w-[900px] mx-auto text-center">
           {[
             {
               n: "Caelya",
@@ -314,7 +314,7 @@ export default function AboutPage() {
               bio: "Artiste signée et co-fondatrice. Elle repère, accompagne et produit les voix qui refusent le moule.",
             },
           ].map(({ n, r, img, bio }) => (
-            <div key={n}>
+            <div key={n} className="text-center">
               <div
                 className="grain aspect-[4/5] mb-4 w-[64%] mx-auto"
                 style={{ background: `center/cover no-repeat url(${img})` }}
@@ -325,7 +325,7 @@ export default function AboutPage() {
               <div className="italic text-[13px] text-ink-muted mt-1 tracking-[0.04em]">
                 {r}
               </div>
-              <div className="text-[14px] leading-[1.6] text-ink-muted mt-3 max-w-[380px]">
+              <div className="text-[14px] leading-[1.6] text-ink-muted mt-3 max-w-[380px] mx-auto">
                 {bio}
               </div>
             </div>
