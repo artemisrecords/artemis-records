@@ -21,7 +21,7 @@ export function HomeClient({
     <div>
       <section className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] min-h-[84vh] items-stretch">
         <div className="relative overflow-hidden bg-bleu-nuit-700 text-beige-sable px-[clamp(28px,4vw,56px)] py-[clamp(56px,7vw,96px)] flex flex-col justify-center">
-          <div className="stars" aria-hidden="true" />
+          <div className="stars stars-dense stars-rise" aria-hidden="true" />
           <div className="relative z-10">
             <Eyebrow inverse className="!text-magenta">
               ARTémis Records · Music Label
@@ -106,7 +106,7 @@ function HeroCarousel({ artists }: { artists: Artist[] }) {
   return (
     <div
       data-cursor="hero"
-      className="relative overflow-hidden grain text-beige-sable min-h-[340px] cursor-none"
+      className="relative overflow-hidden grain text-beige-sable min-h-[340px]"
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
@@ -127,7 +127,7 @@ function HeroCarousel({ artists }: { artists: Artist[] }) {
       {/* center → artist page */}
       <Link
         href={`/artists/${cur.id}`}
-        className="absolute inset-0 z-10 flex flex-col justify-end cursor-none no-underline text-beige-sable p-[clamp(28px,4vw,48px)]"
+        className="absolute inset-0 z-10 flex flex-col justify-end no-underline text-beige-sable p-[clamp(28px,4vw,48px)]"
       >
         <Eyebrow inverse className="!text-magenta">
           À la une
@@ -147,14 +147,22 @@ function HeroCarousel({ artists }: { artists: Artist[] }) {
             type="button"
             onClick={() => go(-1)}
             aria-label="Artiste précédent"
-            className="absolute left-0 inset-y-0 z-20 w-[18%] min-w-[64px] max-w-[140px] cursor-none border-0 bg-transparent"
-          />
+            className="absolute left-0 inset-y-0 z-20 w-[18%] min-w-[64px] max-w-[140px] border-0 bg-transparent"
+          >
+            <span className="hero-edge-hint hero-edge-hint-left" aria-hidden>
+              <HeroChevron dir="left" />
+            </span>
+          </button>
           <button
             type="button"
             onClick={() => go(1)}
             aria-label="Artiste suivant"
-            className="absolute right-0 inset-y-0 z-20 w-[18%] min-w-[64px] max-w-[140px] cursor-none border-0 bg-transparent"
-          />
+            className="absolute right-0 inset-y-0 z-20 w-[18%] min-w-[64px] max-w-[140px] border-0 bg-transparent"
+          >
+            <span className="hero-edge-hint hero-edge-hint-right" aria-hidden>
+              <HeroChevron dir="right" />
+            </span>
+          </button>
         </>
       )}
 
@@ -178,5 +186,21 @@ function HeroCarousel({ artists }: { artists: Artist[] }) {
       )}
 
     </div>
+  );
+}
+
+function HeroChevron({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={dir === "left" ? { transform: "scaleX(-1)" } : undefined}
+    >
+      <polyline points="9 5 16 12 9 19" />
+    </svg>
   );
 }

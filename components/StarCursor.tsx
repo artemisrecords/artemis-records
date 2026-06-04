@@ -140,26 +140,29 @@ export function StarCursor() {
           if (fade <= 0) continue;
           const w = MAX_WIDTH * fade;
 
-          // Halo + bords magenta.
-          ctx.shadowColor = "rgba(210, 74, 142, 0.85)";
-          ctx.shadowBlur = 8 * fade + 3;
-          ctx.strokeStyle = `rgba(190, 60, 125, ${0.55 * fade})`;
-          ctx.lineWidth = w * 2.3;
+          // Glow néon recréé en empilant trois traits translucides plutôt qu'avec
+          // shadowBlur : un flou gaussien par segment (~150 segments/frame) est
+          // l'opération canvas la plus coûteuse et saturait le thread principal
+          // (traînée saccadée ET étoile en retard sur la souris).
           ctx.beginPath();
           ctx.moveTo(start.x, start.y);
           ctx.quadraticCurveTo(p1.x, p1.y, end.x, end.y);
+
+          // Halo externe diffus.
+          ctx.strokeStyle = `rgba(210, 74, 142, ${0.14 * fade})`;
+          ctx.lineWidth = w * 3.6;
+          ctx.stroke();
+
+          // Bords magenta.
+          ctx.strokeStyle = `rgba(190, 60, 125, ${0.5 * fade})`;
+          ctx.lineWidth = w * 2.1;
           ctx.stroke();
 
           // Cœur blanc.
-          ctx.shadowBlur = 0;
           ctx.strokeStyle = `rgba(255, 255, 255, ${0.92 * fade})`;
           ctx.lineWidth = Math.max(w * 0.85, 0.6);
-          ctx.beginPath();
-          ctx.moveTo(start.x, start.y);
-          ctx.quadraticCurveTo(p1.x, p1.y, end.x, end.y);
           ctx.stroke();
         }
-        ctx.shadowBlur = 0;
       }
 
       raf = requestAnimationFrame(loop);
