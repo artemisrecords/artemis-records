@@ -143,9 +143,18 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
             size="md"
           />
           <div className="h-8" />
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-6">
-            {artist.embeds.map((e, i) => (
-              <EmbedPlayer key={i} embed={e} />
+          <div className="flex flex-col gap-12">
+            {[...new Set(artist.embeds.map((e) => e.type))].map((type) => (
+              <div
+                key={type}
+                className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-6"
+              >
+                {artist.embeds
+                  .filter((e) => e.type === type)
+                  .map((e, i) => (
+                    <EmbedPlayer key={i} embed={e} />
+                  ))}
+              </div>
             ))}
           </div>
         </section>

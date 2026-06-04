@@ -4,8 +4,8 @@ import { Eyebrow } from "./Primitives";
 export const EmbedPlayer = ({ embed }: { embed: Embed }) => {
   if (embed.type === "spotify") {
     return (
-      <div className="bg-white shadow-editorial-sm">
-        <div className="flex justify-between items-center px-4.5 py-3.5 border-b border-ink/15">
+      <div>
+        <div className="flex justify-between items-center pb-3">
           <Eyebrow className="!text-magenta">Spotify</Eyebrow>
           <span className="text-[11px] italic text-ink-muted">
             {embed.title}
@@ -17,7 +17,7 @@ export const EmbedPlayer = ({ embed }: { embed: Embed }) => {
           height={152}
           allow="autoplay; clipboard-write; encrypted-media"
           loading="lazy"
-          className="block border-0"
+          className="block border-0 rounded-xl"
         />
       </div>
     );
