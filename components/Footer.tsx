@@ -14,8 +14,8 @@ export const Footer = () => {
   )
     return null;
   return (
-  <footer className="bg-bleu-nuit-700 text-beige-sable font-serif grid grid-cols-[1.3fr_1fr_1fr_1fr] gap-10 px-[clamp(24px,4vw,56px)] pt-[72px] pb-9">
-    <div>
+  <footer className="bg-bleu-nuit-700 text-beige-sable font-serif grid grid-cols-2 gap-x-10 gap-y-12 sm:grid-cols-3 lg:grid-cols-[1.3fr_1fr_1fr_1fr] lg:gap-10 px-[clamp(24px,4vw,56px)] pt-14 sm:pt-[72px] pb-9">
+    <div className="col-span-2 sm:col-span-3 lg:col-span-1">
       <Wordmark inverse size={22} />
       <p className="italic text-[13px] opacity-80 mt-[18px] leading-[1.65] max-w-[340px]">
         Label français dédié aux artistes émergents. Respect du travail, des
@@ -55,7 +55,7 @@ export const Footer = () => {
       </div>
     </div>
 
-    <div>
+    <div className="col-span-2 sm:col-span-1">
       <Eyebrow className="!text-beige-sable/55 mb-3.5">Contact</Eyebrow>
       <div className="text-[12px] mb-2 opacity-85">07 78 47 22 30</div>
       <div className="text-[12px] mb-2 opacity-85">
@@ -80,7 +80,7 @@ export const Footer = () => {
 
     <div className="col-span-full border-t border-beige-sable/20 pt-5 mt-5 text-[10px] tracking-eyebrow uppercase opacity-60 flex justify-between flex-wrap gap-3">
       <span>© 2026 ARTémis Records</span>
-      <div className="flex gap-[22px]">
+      <div className="flex flex-wrap gap-x-[22px] gap-y-2">
         <Link href="/auth">Espace label</Link>
         <Link href="/legal">Mentions légales</Link>
         <Link href="/privacy">Confidentialité</Link>
