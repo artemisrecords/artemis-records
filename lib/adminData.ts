@@ -1,6 +1,6 @@
 import type { demos, demands, subscribers } from "./db/schema";
 
-export type DemoStatus = "nouveau" | "ecoute" | "retenu" | "refuse";
+export type DemoStatus = "nouveau" | "retenu" | "refuse";
 export type DemandCategory =
   | "presse"
   | "booking"
@@ -25,25 +25,24 @@ export const TEAM: TeamMember[] = [
     id: "u1",
     name: "Margaux Villeneuve",
     role: "Direction artistique",
-    email: "margaux@artemis-records.fr",
+    email: "margaux@artemisrecordslabel.com",
   },
   {
     id: "u2",
     name: "Jules Antonin",
     role: "Production & tournées",
-    email: "jules@artemis-records.fr",
+    email: "jules@artemisrecordslabel.com",
   },
   {
     id: "u3",
     name: "Inès Rocher",
     role: "Presse & communication",
-    email: "ines@artemis-records.fr",
+    email: "ines@artemisrecordslabel.com",
   },
 ];
 
 export const DEMO_STATUS_LABEL: Record<DemoStatus, string> = {
   nouveau: "Nouveau",
-  ecoute: "À écouter",
   retenu: "Retenu",
   refuse: "Refusé",
 };
