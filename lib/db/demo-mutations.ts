@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { demos } from "./schema";
 import type { DemoLink, DemoRow } from "./schema";
+import type { DemoStatus } from "@/lib/adminData";
 
 export async function insertDemo(input: {
   artist: string;
@@ -32,7 +33,7 @@ export async function getDemoById(id: string): Promise<DemoRow | null> {
 
 export async function setDemoStatus(
   id: string,
-  status: string,
+  status: DemoStatus,
   notes?: string,
 ): Promise<void> {
   const patch: Partial<typeof demos.$inferInsert> = { status };
