@@ -7,6 +7,37 @@ import type { Artist, ArtistShow, NewsRow } from "./schema";
 export const NEWSLETTER_SIGNUP_KEY = "newsletter_signup_url";
 export const NEWSLETTER_DASHBOARD_KEY = "newsletter_dashboard_url";
 
+export const LABEL_EMAIL_KEY = "label_contact_email";
+export const LABEL_PHONE_KEY = "label_phone";
+export const LABEL_ADDRESS_KEY = "label_address";
+
+export const LABEL_DEFAULTS = {
+  email: "artemis.inscriptions@gmail.com",
+  phone: "07 78 47 22 30",
+  address: "22 rue des Épinettes, 95180 Menucourt",
+};
+
+export type LabelSettings = { email: string; phone: string; address: string };
+
+export async function getLabelSettings(): Promise<LabelSettings> {
+  const rows = await db
+    .select()
+    .from(settings)
+    .where(
+      inArray(settings.key, [LABEL_EMAIL_KEY, LABEL_PHONE_KEY, LABEL_ADDRESS_KEY]),
+    );
+  const byKey = new Map(rows.map((r) => [r.key, r.value]));
+  return {
+    email: byKey.get(LABEL_EMAIL_KEY) ?? LABEL_DEFAULTS.email,
+    phone: byKey.get(LABEL_PHONE_KEY) ?? LABEL_DEFAULTS.phone,
+    address: byKey.get(LABEL_ADDRESS_KEY) ?? LABEL_DEFAULTS.address,
+  };
+}
+
+export async function getLabelNotifyEmail(): Promise<string> {
+  return (await getLabelSettings()).email;
+}
+
 export type NewsletterSettings = {
   signupUrl: string | null;
   dashboardUrl: string | null;
