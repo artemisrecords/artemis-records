@@ -9,12 +9,16 @@ import {
   Pill,
 } from "@/components/admin/AdminPrimitives";
 import { MultiPillFilter } from "@/components/admin/MultiPillFilter";
-import {
-  DEMO_STATUS_LABEL,
-  type Demo,
-  type DemoStatus,
-} from "@/lib/adminData";
+import { DEMO_STATUS_LABEL, type Demo, type DemoStatus } from "@/lib/adminData";
 import { formatDate } from "@/lib/data";
+import { DecisionDialog } from "@/components/admin/DecisionDialog";
+import type { Decision } from "@/lib/demoEmails";
+import {
+  markListenedAction,
+  updateDemoMetaAction,
+} from "./actions";
+
+export type Account = { id: string; name: string };
 
 const FILTER_OPTIONS: { k: DemoStatus | "tous"; label: string }[] = [
   { k: "tous", label: "Tous" },
@@ -24,12 +28,22 @@ const FILTER_OPTIONS: { k: DemoStatus | "tous"; label: string }[] = [
   { k: "refuse", label: "Refusés" },
 ];
 
-export function DemosPageClient({ demos }: { demos: Demo[] }) {
+export function DemosPageClient({
+  demos,
+  accounts,
+}: {
+  demos: Demo[];
+  accounts: Account[];
+}) {
   const [selectedFilters, setSelectedFilters] = useState<Set<DemoStatus>>(
     new Set(),
   );
   const [selectedId, setSelectedId] = useState<string>(demos[0]?.id ?? "");
   const [query, setQuery] = useState("");
+  const [decisionFor, setDecisionFor] = useState<{
+    demo: Demo;
+    decision: Decision;
+  } | null>(null);
 
   const filtered = useMemo(() => {
     return demos.filter((d) => {
@@ -189,13 +203,43 @@ export function DemosPageClient({ demos }: { demos: Demo[] }) {
           </ul>
         </div>
 
-        {selected && <DemoDetail demo={selected} />}
+        {selected && (
+          <DemoDetail
+            demo={selected}
+            accounts={accounts}
+            onDecide={(decision) =>
+              setDecisionFor({ demo: selected, decision })
+            }
+          />
+        )}
       </div>
+
+      {decisionFor && (
+        <DecisionDialog
+          key={`${decisionFor.demo.id}-${decisionFor.decision}`}
+          demoId={decisionFor.demo.id}
+          artist={decisionFor.demo.artist}
+          email={decisionFor.demo.email}
+          decision={decisionFor.decision}
+          onClose={() => setDecisionFor(null)}
+        />
+      )}
     </div>
   );
 }
 
-function DemoDetail({ demo }: { demo: Demo }) {
+function DemoDetail({
+  demo,
+  accounts,
+  onDecide,
+}: {
+  demo: Demo;
+  accounts: Account[];
+  onDecide: (decision: Decision) => void;
+}) {
+  const assignedName =
+    accounts.find((a) => a.id === demo.assignedTo)?.name ?? "";
+
   return (
     <aside className="bg-paper-soft border border-ink/10 rounded-[2px] sticky top-[88px]">
       <header className="p-6 bg-bleu-nuit-700 text-beige-sable relative overflow-hidden rounded-t-[2px]">
@@ -203,7 +247,7 @@ function DemoDetail({ demo }: { demo: Demo }) {
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <AdminEyebrow className="!text-magenta">
-              {demo.id} · reçue le {formatDate(demo.receivedAt)}
+              reçue le {formatDate(demo.receivedAt)}
             </AdminEyebrow>
             <Pill
               tone={
@@ -223,40 +267,31 @@ function DemoDetail({ demo }: { demo: Demo }) {
             {demo.artist}
           </h2>
           <div className="italic text-[14px] text-beige-sable/80 mt-1">
-            {demo.genre} · {demo.city} · {demo.duration}
+            {[demo.genre, demo.city, demo.duration].filter(Boolean).join(" · ")}
           </div>
-          {demo.rating && (
-            <div className="text-magenta text-[14px] tracking-[0.25em] mt-3">
-              {"✦".repeat(demo.rating)}
-              <span className="opacity-35">{"✦".repeat(5 - demo.rating)}</span>
+
+          {/* Note ✦ cliquable */}
+          <form action={updateDemoMetaAction} className="mt-3">
+            <input type="hidden" name="id" value={demo.id} />
+            <div className="flex items-center gap-1.5">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="submit"
+                  name="rating"
+                  value={n}
+                  aria-label={`Noter ${n} sur 5`}
+                  className="text-magenta text-[16px] leading-none cursor-pointer hover:scale-110 transition-transform"
+                >
+                  <span className={demo.rating && n <= demo.rating ? "" : "opacity-35"}>
+                    ✦
+                  </span>
+                </button>
+              ))}
             </div>
-          )}
+          </form>
         </div>
       </header>
-
-      <div className="px-6 py-4 border-b border-ink/10 bg-paper">
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            className="w-11 h-11 rounded-full bg-magenta text-white flex items-center justify-center text-[14px] cursor-pointer hover:opacity-90"
-            aria-label="Lire"
-          >
-            ▶
-          </button>
-          <div className="flex-1">
-            <div className="text-[11px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-              Lecture · piste 1 / {demo.links.length}
-            </div>
-            <div className="relative h-[6px] bg-ink/10 rounded-full mt-2 overflow-hidden">
-              <div className="absolute inset-y-0 left-0 w-[34%] bg-bleu-nuit-700" />
-            </div>
-            <div className="flex justify-between mt-1 text-[11px] text-ink-subtle font-serif italic">
-              <span>1:17</span>
-              <span>3:42</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="p-6 flex flex-col gap-5">
         <div>
@@ -279,13 +314,27 @@ function DemoDetail({ demo }: { demo: Demo }) {
           </div>
           <div>
             <AdminEyebrow className="mb-1">Assigné à</AdminEyebrow>
-            <div className="font-serif text-[14px] text-ink">
-              {demo.assignedTo || (
-                <span className="italic text-ink-subtle">
-                  Personne · assigner
-                </span>
-              )}
-            </div>
+            <form action={updateDemoMetaAction}>
+              <input type="hidden" name="id" value={demo.id} />
+              <select
+                name="assignedTo"
+                defaultValue={demo.assignedTo ?? ""}
+                onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                className="w-full bg-paper border border-ink/15 px-2.5 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
+              >
+                <option value="">Personne</option>
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </form>
+            {assignedName && (
+              <div className="italic text-[12px] text-ink-muted mt-1">
+                Suivi par {assignedName}
+              </div>
+            )}
           </div>
         </div>
 
@@ -306,37 +355,63 @@ function DemoDetail({ demo }: { demo: Demo }) {
           </ul>
         </div>
 
-        {demo.tags && demo.tags.length > 0 && (
-          <div>
-            <AdminEyebrow className="mb-2">Étiquettes</AdminEyebrow>
-            <div className="flex flex-wrap gap-1.5">
-              {demo.tags.map((t) => (
-                <span
-                  key={t}
-                  className="text-[10px] tracking-[0.12em] uppercase font-bold text-ink-subtle bg-ink/6 px-2 py-0.5 rounded-full"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
+        {/* Étiquettes éditables : un champ texte (séparé par virgules) */}
+        <form action={updateDemoMetaAction}>
+          <input type="hidden" name="id" value={demo.id} />
+          <AdminEyebrow className="mb-2">
+            Étiquettes (séparées par des virgules)
+          </AdminEyebrow>
+          <div className="flex items-center gap-2">
+            <input
+              name="tags"
+              defaultValue={demo.tags?.join(", ") ?? ""}
+              placeholder="pop, voix, prod léchée…"
+              className="flex-1 bg-paper border border-ink/15 px-3 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
+            />
+            <AdminBtn kind="secondary" type="submit">
+              OK
+            </AdminBtn>
           </div>
-        )}
+        </form>
 
-        <div>
+        {/* Notes internes enregistrables */}
+        <form action={updateDemoMetaAction}>
+          <input type="hidden" name="id" value={demo.id} />
           <AdminEyebrow className="mb-2">Notes internes</AdminEyebrow>
           <textarea
+            name="notes"
             rows={3}
+            defaultValue={demo.notes ?? ""}
             placeholder="Vos impressions à chaud : ce qui accroche, ce qui tempère, ce qu'il faut creuser…"
             className="w-full bg-paper border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] italic text-ink outline-none focus:border-magenta transition-colors rounded-[2px] resize-y leading-[1.55]"
           />
-        </div>
+          <div className="mt-2 flex justify-end">
+            <AdminBtn kind="secondary" type="submit">
+              Enregistrer les notes
+            </AdminBtn>
+          </div>
+        </form>
 
         <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-ink/10">
-          <AdminBtn kind="accent">Retenir</AdminBtn>
-          <AdminBtn kind="secondary">Marquer écouté</AdminBtn>
-          <AdminBtn kind="danger">Refuser avec tact</AdminBtn>
+          <AdminBtn kind="accent" onClick={() => onDecide("retenu")}>
+            Retenir
+          </AdminBtn>
+          <MarkListenedButton id={demo.id} />
+          <AdminBtn kind="danger" onClick={() => onDecide("refuse")}>
+            Refuser avec tact
+          </AdminBtn>
         </div>
       </div>
     </aside>
+  );
+}
+
+function MarkListenedButton({ id }: { id: string }) {
+  return (
+    <form action={markListenedAction.bind(null, id)}>
+      <AdminBtn kind="secondary" type="submit">
+        Marquer écouté
+      </AdminBtn>
+    </form>
   );
 }
