@@ -34,6 +34,14 @@ export function DecisionDialog({
     if (state?.ok) onClose();
   }, [state, onClose]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const title = decision === "retenu" ? "Retenir cette démo" : "Refuser avec tact";
 
   return (
@@ -41,6 +49,7 @@ export function DecisionDialog({
       className="fixed inset-0 z-50 bg-bleu-nuit-900/60 flex items-start justify-center overflow-y-auto p-4 sm:p-8"
       role="dialog"
       aria-modal="true"
+      aria-label={title}
       onClick={onClose}
     >
       <div
