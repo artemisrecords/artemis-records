@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
  * Désactivé sur pointeur grossier (tactile) et si prefers-reduced-motion.
  */
 
-type CursorMode = "star" | "arrow-left" | "arrow-right" | "view";
+type CursorMode = "star" | "pointer" | "arrow-left" | "arrow-right" | "view";
 type TrailPoint = { x: number; y: number; t: number };
 
 // Durée de vie d'un point de traînée (ms) : la traînée s'efface en douceur.
@@ -30,10 +30,19 @@ const MAX_POINTS = 160;
 const STAR_PATH =
   "M12 0 L13.2 10.8 L24 12 L13.2 13.2 L12 24 L10.8 13.2 L0 12 L10.8 10.8 Z";
 
+// Éléments « cliquables » : au survol, l'étoile devient un doigt (mode pointer).
+// On couvre les balises interactives natives + l'utilitaire Tailwind
+// `cursor-pointer` (le `cursor: none` global masque la détection par style
+// calculé, d'où une détection structurelle).
+const CLICKABLE_SELECTOR =
+  'a[href], button, [role="button"], select, summary, label[for], ' +
+  'input[type="submit"], input[type="button"], input[type="checkbox"], ' +
+  'input[type="radio"], .cursor-pointer';
+
 /** Détermine la forme selon l'élément survolé et la position du pointeur. */
 function resolveMode(el: Element | null, clientX: number): CursorMode {
   const hero = el?.closest<HTMLElement>('[data-cursor="hero"]');
-  if (!hero) return "star";
+  if (!hero) return el?.closest(CLICKABLE_SELECTOR) ? "pointer" : "star";
   const r = hero.getBoundingClientRect();
   // La largeur des bords doit refléter celle des boutons prev/next du carrousel.
   const edge = Math.min(Math.max(r.width * 0.18, 64), 140);
@@ -95,7 +104,7 @@ export function StarCursor() {
         lastMode = next;
         setMode(next);
       }
-      if (lastMode === "star") {
+      if (lastMode === "star" || lastMode === "pointer") {
         // On récupère TOUS les points intermédiaires (sub-frame) pour une
         // trajectoire dense → trait lisse même sur un mouvement rapide.
         let evs: PointerEvent[] =
@@ -203,6 +212,14 @@ export function StarCursor() {
       <div ref={headRef} className="star-cursor-head" data-mode={mode} style={{ opacity: 0 }}>
         <svg className="sc-shape sc-star" viewBox="0 0 24 24" width="28" height="28">
           <path d={STAR_PATH} fill="url(#sc-star-grad)" />
+        </svg>
+
+        {/* Doigt « clic » — même cœur blanc → magenta que l'étoile. */}
+        <svg className="sc-shape sc-pointer" viewBox="0 0 24 24" width="26" height="26">
+          <g fill="url(#sc-star-grad)">
+            <rect x="9.1" y="2.4" width="3.4" height="11.5" rx="1.7" />
+            <path d="M6.6 12.2h8.9a2.2 2.2 0 0 1 2.2 2.2v1.7a5.2 5.2 0 0 1-5.2 5.2h-2.9a5.2 5.2 0 0 1-5.2-5.2v-1.7a2.2 2.2 0 0 1 2.2-2.2Z" />
+          </g>
         </svg>
 
         <div className="sc-shape sc-arrow sc-arrow-left">
