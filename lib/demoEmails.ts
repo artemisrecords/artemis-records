@@ -78,7 +78,7 @@ Contact : ${input.contact} (${input.email})
   const html = shell(
     "Nouvelle démo",
     `${paras(`Projet : ${input.artist}\nContact : ${input.contact} (${input.email})`)}
-     // URL construite côté serveur ; échappée par prudence.
+     <!-- URL construite côté serveur ; échappée par prudence. -->
      <a href="${escapeAttr(input.backofficeUrl)}" style="display:inline-block;background:${INK};color:${PAPER};text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold;padding:14px 28px;border-radius:2px">Ouvrir la boîte à démos →</a>`,
   );
   return { subject, text, html };
