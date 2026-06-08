@@ -18,27 +18,33 @@ export const Field = ({
   required?: boolean;
   defaultValue?: string;
   error?: string;
-}) => (
-  <div className="mb-5.5">
-    <label className="block mb-1.5 text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-      {label}
-    </label>
-    <input
-      type={type}
-      name={name}
-      required={required}
-      defaultValue={defaultValue}
-      placeholder={placeholder}
-      aria-invalid={error ? true : undefined}
-      className={`w-full bg-transparent border-0 border-b px-0 py-2.5 font-serif text-[15px] text-ink outline-none transition-colors ${
-        error ? "border-magenta" : "border-ink/30 focus:border-magenta"
-      }`}
-    />
-    {error && (
-      <div className="mt-1.5 text-[12px] italic text-magenta">{error}</div>
-    )}
-  </div>
-);
+}) => {
+  const errorId = error && name ? `${name}-error` : undefined;
+  return (
+    <div className="mb-5.5">
+      <label className="block mb-1.5 text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
+        {label}
+      </label>
+      <input
+        type={type}
+        name={name}
+        required={required}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={errorId}
+        className={`w-full bg-transparent border-0 border-b px-0 py-2.5 font-serif text-[15px] text-ink outline-none transition-colors ${
+          error ? "border-magenta" : "border-ink/30 focus:border-magenta"
+        }`}
+      />
+      {error && (
+        <div id={errorId} className="mt-1.5 text-[12px] italic text-magenta">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const TextArea = ({
   label,
@@ -56,29 +62,33 @@ export const TextArea = ({
   required?: boolean;
   defaultValue?: string;
   error?: string;
-}) => (
-  <div className="mb-7">
-    <label className="block mb-1.5 text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-      {label}
-    </label>
-    <textarea
-      name={name}
-      required={required}
-      defaultValue={defaultValue}
-      rows={rows}
-      placeholder={placeholder}
-      aria-invalid={error ? true : undefined}
-      className={`w-full bg-transparent border-0 border-b px-0 py-2.5 font-serif italic text-[15px] text-ink outline-none resize-y transition-colors ${
-        error ? "border-magenta" : "border-ink/30 focus:border-magenta"
-      }`}
-    />
-    {error && (
-      <div className="mt-1.5 text-[12px] italic text-magenta not-italic">
-        {error}
-      </div>
-    )}
-  </div>
-);
+}) => {
+  const errorId = error && name ? `${name}-error` : undefined;
+  return (
+    <div className="mb-7">
+      <label className="block mb-1.5 text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
+        {label}
+      </label>
+      <textarea
+        name={name}
+        required={required}
+        defaultValue={defaultValue}
+        rows={rows}
+        placeholder={placeholder}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={errorId}
+        className={`w-full bg-transparent border-0 border-b px-0 py-2.5 font-serif italic text-[15px] text-ink outline-none resize-y transition-colors ${
+          error ? "border-magenta" : "border-ink/30 focus:border-magenta"
+        }`}
+      />
+      {error && (
+        <div id={errorId} className="mt-1.5 text-[12px] text-magenta not-italic">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const InfoRow = ({
   label,
