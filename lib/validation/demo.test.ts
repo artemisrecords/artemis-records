@@ -41,4 +41,9 @@ describe("demoSubmissionSchema", () => {
     const r = demoSubmissionSchema.safeParse({ ...valid, artist: "   " });
     expect(r.success).toBe(false);
   });
+
+  it("rejette un nom civil vide", () => {
+    const r = demoSubmissionSchema.safeParse({ ...valid, contact: "   " });
+    expect(r.success).toBe(false);
+  });
 });

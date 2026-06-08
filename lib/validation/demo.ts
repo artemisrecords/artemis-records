@@ -3,7 +3,7 @@ import { z } from "zod";
 // Validations regex maison pour rester indépendant des variations d'API
 // email()/url() entre versions de zod.
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const URL_RE = /^https?:\/\/.+/i;
+const URL_RE = /^https?:\/\/[^\s]+/i;
 
 export const demoSubmissionSchema = z.object({
   artist: z.string().trim().min(1, "Indiquez votre nom d'artiste."),
