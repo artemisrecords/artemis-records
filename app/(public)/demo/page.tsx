@@ -40,6 +40,15 @@ export default function DemoPage() {
           />
         ) : (
           <form action={formAction}>
+            {errors && Object.keys(errors).length > 0 && (
+              <div
+                role="alert"
+                className="mb-5 text-[13px] italic text-magenta"
+              >
+                Le formulaire contient des erreurs. Corrigez les champs
+                signalés ci-dessous.
+              </div>
+            )}
             <Field
               name="artist"
               label="Nom d'artiste"
