@@ -13,12 +13,6 @@ import { wrapArtistHtml, demoDecisionLabel } from "@/lib/demoEmails";
 
 export type DecisionState = { ok?: boolean; error?: string } | null;
 
-export async function markListenedAction(id: string): Promise<void> {
-  await requireRole("superadmin", "admin");
-  await setDemoStatus(id, "ecoute");
-  revalidatePath("/backoffice/demos");
-}
-
 export async function decideDemoAction(
   _prev: DecisionState,
   formData: FormData,

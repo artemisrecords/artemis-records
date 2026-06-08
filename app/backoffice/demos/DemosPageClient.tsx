@@ -13,17 +13,13 @@ import { DEMO_STATUS_LABEL, type Demo, type DemoStatus } from "@/lib/adminData";
 import { formatDate } from "@/lib/data";
 import { DecisionDialog } from "@/components/admin/DecisionDialog";
 import type { Decision } from "@/lib/demoEmails";
-import {
-  markListenedAction,
-  updateDemoMetaAction,
-} from "./actions";
+import { updateDemoMetaAction } from "./actions";
 
 export type Account = { id: string; name: string };
 
 const FILTER_OPTIONS: { k: DemoStatus | "tous"; label: string }[] = [
   { k: "tous", label: "Tous" },
   { k: "nouveau", label: "Nouveaux" },
-  { k: "ecoute", label: "À écouter" },
   { k: "retenu", label: "Retenus" },
   { k: "refuse", label: "Refusés" },
 ];
@@ -64,7 +60,6 @@ export function DemosPageClient({
     const c: Record<DemoStatus | "tous", number> = {
       tous: demos.length,
       nouveau: 0,
-      ecoute: 0,
       retenu: 0,
       refuse: 0,
     };
@@ -238,6 +233,14 @@ function DemoDetail({
   accounts: Account[];
   onDecide: (decision: Decision) => void;
 }) {
+  // Champs contrôlés : un `<form action={serverAction}>` réinitialise les
+  // champs non-contrôlés après soumission, ce qui faisait « revenir » la
+  // valeur précédente. L'état local (réinitialisé au changement de démo via
+  // la `key` sur DemoDetail) conserve la valeur choisie.
+  const [assignedTo, setAssignedTo] = useState(demo.assignedTo ?? "");
+  const [tags, setTags] = useState(demo.tags?.join(", ") ?? "");
+  const [notes, setNotes] = useState(demo.notes ?? "");
+
   return (
     <aside className="bg-paper-soft border border-ink/10 rounded-[2px] sticky top-[88px]">
       <header className="p-6 bg-bleu-nuit-700 text-beige-sable relative overflow-hidden rounded-t-[2px]">
@@ -316,8 +319,12 @@ function DemoDetail({
               <input type="hidden" name="id" value={demo.id} />
               <select
                 name="assignedTo"
-                defaultValue={demo.assignedTo ?? ""}
-                onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                value={assignedTo}
+                onChange={(e) => {
+                  const form = e.currentTarget.form;
+                  setAssignedTo(e.target.value);
+                  form?.requestSubmit();
+                }}
                 className="w-full bg-paper border border-ink/15 px-2.5 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
               >
                 <option value="">Personne</option>
@@ -357,7 +364,8 @@ function DemoDetail({
           <div className="flex items-center gap-2">
             <input
               name="tags"
-              defaultValue={demo.tags?.join(", ") ?? ""}
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
               placeholder="pop, voix, prod léchée…"
               className="flex-1 bg-paper border border-ink/15 px-3 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
             />
@@ -374,7 +382,8 @@ function DemoDetail({
           <textarea
             name="notes"
             rows={3}
-            defaultValue={demo.notes ?? ""}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
             placeholder="Vos impressions à chaud : ce qui accroche, ce qui tempère, ce qu'il faut creuser…"
             className="w-full bg-paper border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] italic text-ink outline-none focus:border-magenta transition-colors rounded-[2px] resize-y leading-[1.55]"
           />
@@ -389,22 +398,11 @@ function DemoDetail({
           <AdminBtn kind="accent" onClick={() => onDecide("retenu")}>
             Retenir
           </AdminBtn>
-          <MarkListenedButton id={demo.id} />
           <AdminBtn kind="danger" onClick={() => onDecide("refuse")}>
             Refuser avec tact
           </AdminBtn>
         </div>
       </div>
     </aside>
-  );
-}
-
-function MarkListenedButton({ id }: { id: string }) {
-  return (
-    <form action={markListenedAction.bind(null, id)}>
-      <AdminBtn kind="secondary" type="submit">
-        Marquer écouté
-      </AdminBtn>
-    </form>
   );
 }
