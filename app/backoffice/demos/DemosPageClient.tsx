@@ -167,7 +167,7 @@ export function DemosPageClient({
                         )}
                       </div>
                       <div className="italic text-[12px] text-ink-muted truncate mt-0.5">
-                        {d.genre} · {d.city} · {d.duration}
+                        {[d.genre, d.city, d.duration].filter(Boolean).join(" · ")}
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {d.tags?.slice(0, 3).map((t) => (
@@ -205,6 +205,7 @@ export function DemosPageClient({
 
         {selected && (
           <DemoDetail
+            key={selected.id}
             demo={selected}
             accounts={accounts}
             onDecide={(decision) =>
@@ -237,9 +238,6 @@ function DemoDetail({
   accounts: Account[];
   onDecide: (decision: Decision) => void;
 }) {
-  const assignedName =
-    accounts.find((a) => a.id === demo.assignedTo)?.name ?? "";
-
   return (
     <aside className="bg-paper-soft border border-ink/10 rounded-[2px] sticky top-[88px]">
       <header className="p-6 bg-bleu-nuit-700 text-beige-sable relative overflow-hidden rounded-t-[2px]">
@@ -330,11 +328,6 @@ function DemoDetail({
                 ))}
               </select>
             </form>
-            {assignedName && (
-              <div className="italic text-[12px] text-ink-muted mt-1">
-                Suivi par {assignedName}
-              </div>
-            )}
           </div>
         </div>
 
