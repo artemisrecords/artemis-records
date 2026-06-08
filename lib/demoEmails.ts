@@ -16,6 +16,10 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
+function escapeAttr(s: string): string {
+  return escapeHtml(s).replace(/"/g, "&quot;");
+}
+
 function shell(eyebrow: string, bodyHtml: string): string {
   return `<!doctype html>
 <html lang="fr"><body style="margin:0;background:${PAPER};font-family:Georgia,serif;color:${INK}">
@@ -74,7 +78,8 @@ Contact : ${input.contact} (${input.email})
   const html = shell(
     "Nouvelle démo",
     `${paras(`Projet : ${input.artist}\nContact : ${input.contact} (${input.email})`)}
-     <a href="${input.backofficeUrl}" style="display:inline-block;background:${INK};color:${PAPER};text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold;padding:14px 28px;border-radius:2px">Ouvrir la boîte à démos →</a>`,
+     // URL construite côté serveur ; échappée par prudence.
+     <a href="${escapeAttr(input.backofficeUrl)}" style="display:inline-block;background:${INK};color:${PAPER};text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold;padding:14px 28px;border-radius:2px">Ouvrir la boîte à démos →</a>`,
   );
   return { subject, text, html };
 }
@@ -126,7 +131,11 @@ Par : ${input.deciderName}`;
   return { subject, text, html: shell("Décision démo", paras(text)) };
 }
 
-/** Enrobe le corps (texte édité par l'admin) dans le HTML de marque. */
+/**
+ * Enrobe le corps (texte édité par l'admin) dans le HTML de marque.
+ * `_subject` n'est pas rendu ici (le sujet du mail est posé par l'appelant
+ * dans l'enveloppe SMTP) ; le paramètre est conservé pour la symétrie d'appel.
+ */
 export function wrapArtistHtml(_subject: string, body: string): string {
   return shell("Réponse à votre démo", paras(body));
 }

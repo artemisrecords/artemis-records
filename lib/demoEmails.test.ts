@@ -51,4 +51,19 @@ describe("demoEmails", () => {
     expect(html).toContain("Merci.");
     expect(html).toContain("<");
   });
+
+  it("échappe le HTML dans le texte fourni", () => {
+    const m = demoReceiptArtist("Evil <b>x</b>");
+    expect(m.html).toContain("&lt;b&gt;");
+    expect(m.html).not.toContain("<b>x</b>");
+
+    const label = demoNewLabel({
+      artist: "Nova",
+      contact: "Jean",
+      email: "jean@exemple.fr",
+      backofficeUrl: 'http://x/"onmouseover="alert(1)',
+    });
+    expect(label.html).toContain("&quot;");
+    expect(label.html).not.toContain('"onmouseover="alert(1)');
+  });
 });
