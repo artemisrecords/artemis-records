@@ -110,7 +110,7 @@ export const Btn = ({
 }: BtnProps) => {
   const classes = `${BTN_BASE} ${BTN_VARIANT[kind]} ${className} ${
     disabled ? "opacity-60 pointer-events-none" : ""
-  }`;
+  }`.trim();
   const content = (
     <>
       {children}
