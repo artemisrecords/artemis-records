@@ -214,12 +214,24 @@ export function StarCursor() {
           <path d={STAR_PATH} fill="url(#sc-star-grad)" />
         </svg>
 
-        {/* Doigt « clic » — même cœur blanc → magenta que l'étoile. */}
-        <svg className="sc-shape sc-pointer" viewBox="0 0 24 24" width="26" height="26">
-          <g fill="url(#sc-star-grad)">
-            <rect x="9.1" y="2.4" width="3.4" height="11.5" rx="1.7" />
-            <path d="M6.6 12.2h8.9a2.2 2.2 0 0 1 2.2 2.2v1.7a5.2 5.2 0 0 1-5.2 5.2h-2.9a5.2 5.2 0 0 1-5.2-5.2v-1.7a2.2 2.2 0 0 1 2.2-2.2Z" />
-          </g>
+        {/* Main « clic » (index pointé) — tracé néon blanc + halo magenta,
+            dans le même langage que la traînée et l'étoile. */}
+        <svg
+          className="sc-shape sc-pointer"
+          viewBox="0 0 24 24"
+          width="30"
+          height="30"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M22 14a8 8 0 0 1-8 8" />
+          <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" />
+          <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" />
+          <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" />
+          <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
         </svg>
 
         <div className="sc-shape sc-arrow sc-arrow-left">
