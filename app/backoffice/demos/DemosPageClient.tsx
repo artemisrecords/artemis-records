@@ -289,6 +289,18 @@ function DemoDetail({
                   </span>
                 </button>
               ))}
+              {demo.rating ? (
+                <button
+                  type="submit"
+                  name="rating"
+                  value="0"
+                  aria-label="Effacer la note"
+                  title="Effacer la note"
+                  className="ml-2 text-beige-sable/55 text-[12px] leading-none cursor-pointer hover:text-magenta transition-colors"
+                >
+                  ✕ effacer
+                </button>
+              ) : null}
             </div>
           </form>
         </div>
