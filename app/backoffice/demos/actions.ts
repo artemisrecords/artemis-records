@@ -12,6 +12,33 @@ import { sendEmail } from "@/lib/email";
 import { wrapArtistHtml, demoDecisionLabel } from "@/lib/demoEmails";
 
 export type DecisionState = { ok?: boolean; error?: string } | null;
+export type CancelState = { ok?: boolean; error?: string } | null;
+
+/**
+ * Annule une décision (retenu/refuse) et repasse la démo en « nouveau ».
+ * Aucun mail n'est envoyé : l'artiste a déjà reçu la décision, c'est au label
+ * de le recontacter — d'où la confirmation « oui » exigée côté UI et ici.
+ */
+export async function cancelDecisionAction(
+  _prev: CancelState,
+  formData: FormData,
+): Promise<CancelState> {
+  await requireRole("superadmin", "admin");
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Identifiant manquant." };
+
+  const confirm = String(formData.get("confirm") ?? "")
+    .trim()
+    .toLowerCase();
+  if (confirm !== "oui") {
+    return { error: "Tapez « oui » pour confirmer l'annulation." };
+  }
+
+  await setDemoStatus(id, "nouveau");
+  revalidatePath("/backoffice/demos");
+  return { ok: true };
+}
 
 export async function decideDemoAction(
   _prev: DecisionState,

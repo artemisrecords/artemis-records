@@ -12,6 +12,7 @@ import { MultiPillFilter } from "@/components/admin/MultiPillFilter";
 import { DEMO_STATUS_LABEL, type Demo, type DemoStatus } from "@/lib/adminData";
 import { formatDate } from "@/lib/data";
 import { DecisionDialog } from "@/components/admin/DecisionDialog";
+import { CancelDecisionDialog } from "@/components/admin/CancelDecisionDialog";
 import { SelectMenu } from "@/components/admin/SelectMenu";
 import type { Decision } from "@/lib/demoEmails";
 import { updateDemoMetaAction } from "./actions";
@@ -41,6 +42,7 @@ export function DemosPageClient({
     demo: Demo;
     decision: Decision;
   } | null>(null);
+  const [cancelFor, setCancelFor] = useState<Demo | null>(null);
 
   const filtered = useMemo(() => {
     return demos.filter((d) => {
@@ -207,6 +209,7 @@ export function DemosPageClient({
             onDecide={(decision) =>
               setDecisionFor({ demo: selected, decision })
             }
+            onCancel={() => setCancelFor(selected)}
           />
         )}
       </div>
@@ -221,6 +224,16 @@ export function DemosPageClient({
           onClose={() => setDecisionFor(null)}
         />
       )}
+
+      {cancelFor && (
+        <CancelDecisionDialog
+          key={`cancel-${cancelFor.id}`}
+          demoId={cancelFor.id}
+          artist={cancelFor.artist}
+          status={cancelFor.status as DemoStatus}
+          onClose={() => setCancelFor(null)}
+        />
+      )}
     </div>
   );
 }
@@ -229,10 +242,12 @@ function DemoDetail({
   demo,
   accounts,
   onDecide,
+  onCancel,
 }: {
   demo: Demo;
   accounts: Account[];
   onDecide: (decision: Decision) => void;
+  onCancel: () => void;
 }) {
   // Édition « live » des métadonnées. On évite `<form action={serverAction}>`,
   // qui réinitialise le formulaire après chaque envoi : combiné à la
@@ -406,12 +421,26 @@ function DemoDetail({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-ink/10">
-          <AdminBtn kind="accent" onClick={() => onDecide("retenu")}>
-            Retenir
-          </AdminBtn>
-          <AdminBtn kind="danger" onClick={() => onDecide("refuse")}>
-            Refuser avec tact
-          </AdminBtn>
+          {demo.status === "nouveau" ? (
+            <>
+              <AdminBtn kind="accent" onClick={() => onDecide("retenu")}>
+                Retenir
+              </AdminBtn>
+              <AdminBtn kind="danger" onClick={() => onDecide("refuse")}>
+                Refuser avec tact
+              </AdminBtn>
+            </>
+          ) : (
+            <div className="flex items-center justify-between gap-3 w-full">
+              <span className="font-serif italic text-[13px] text-ink-muted">
+                {demo.status === "retenu" ? "Démo retenue" : "Démo refusée"} ·
+                réponse envoyée à l&apos;artiste.
+              </span>
+              <AdminBtn kind="secondary" onClick={onCancel}>
+                Annuler la décision
+              </AdminBtn>
+            </div>
+          )}
         </div>
       </div>
     </aside>
