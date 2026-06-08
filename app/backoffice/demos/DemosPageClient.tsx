@@ -12,6 +12,7 @@ import { MultiPillFilter } from "@/components/admin/MultiPillFilter";
 import { DEMO_STATUS_LABEL, type Demo, type DemoStatus } from "@/lib/adminData";
 import { formatDate } from "@/lib/data";
 import { DecisionDialog } from "@/components/admin/DecisionDialog";
+import { SelectMenu } from "@/components/admin/SelectMenu";
 import type { Decision } from "@/lib/demoEmails";
 import { updateDemoMetaAction } from "./actions";
 
@@ -337,21 +338,18 @@ function DemoDetail({
           </div>
           <div>
             <AdminEyebrow className="mb-1">Assigné à</AdminEyebrow>
-            <select
+            <SelectMenu
               value={assignedTo}
-              onChange={(e) => {
-                setAssignedTo(e.target.value);
-                saveMeta({ assignedTo: e.target.value });
+              onChange={(v) => {
+                setAssignedTo(v);
+                saveMeta({ assignedTo: v });
               }}
-              className="w-full bg-paper border border-ink/15 px-2.5 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
-            >
-              <option value="">Personne</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
+              placeholder="Personne"
+              options={[
+                { value: "", label: "Personne" },
+                ...accounts.map((a) => ({ value: a.id, label: a.name })),
+              ]}
+            />
           </div>
         </div>
 
