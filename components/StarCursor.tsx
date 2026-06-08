@@ -219,11 +219,11 @@ export function StarCursor() {
         <svg
           className="sc-shape sc-pointer"
           viewBox="0 0 24 24"
-          width="30"
-          height="30"
+          width="26"
+          height="26"
           fill="none"
           stroke="#ffffff"
-          strokeWidth={2}
+          strokeWidth={1.6}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
