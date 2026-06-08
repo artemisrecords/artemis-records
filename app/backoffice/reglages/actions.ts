@@ -36,9 +36,14 @@ export async function saveLabelSettingsAction(
     return { error: "Email de contact invalide." };
   }
 
-  await upsertSetting(LABEL_EMAIL_KEY, email);
-  await upsertSetting(LABEL_PHONE_KEY, phone);
-  await upsertSetting(LABEL_ADDRESS_KEY, address);
+  try {
+    await upsertSetting(LABEL_EMAIL_KEY, email);
+    await upsertSetting(LABEL_PHONE_KEY, phone);
+    await upsertSetting(LABEL_ADDRESS_KEY, address);
+  } catch (e) {
+    console.warn("[reglages] enregistrement échoué:", (e as Error).message);
+    return { error: "Enregistrement impossible. Réessayez." };
+  }
 
   revalidatePath("/backoffice/reglages");
   return { ok: true };

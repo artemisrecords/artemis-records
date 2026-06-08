@@ -84,12 +84,12 @@ export function ReglagesClient({ label }: { label: LabelSettings }) {
                 defaultValue={label.address}
               />
               {state?.error && (
-                <div className="text-[13px] italic text-magenta mb-3">
+                <div role="alert" className="text-[13px] italic text-magenta mb-3">
                   {state.error}
                 </div>
               )}
               {state?.ok && (
-                <div className="text-[13px] italic text-vert-foret-700 mb-3">
+                <div role="status" className="text-[13px] italic text-vert-foret-700 mb-3">
                   Réglages enregistrés.
                 </div>
               )}
