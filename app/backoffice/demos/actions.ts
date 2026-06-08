@@ -26,6 +26,7 @@ export async function decideDemoAction(
   const { user } = await requireRole("superadmin", "admin");
 
   const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Identifiant manquant." };
   const decision = String(formData.get("decision") ?? "");
   const subject = String(formData.get("subject") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
@@ -93,7 +94,7 @@ export async function updateDemoMetaAction(formData: FormData): Promise<void> {
   } = {};
 
   if (formData.has("rating")) {
-    const r = Number(formData.get("rating"));
+    const r = Math.round(Number(formData.get("rating")));
     patch.rating = Number.isFinite(r) && r >= 1 && r <= 5 ? r : null;
   }
   if (formData.has("tags")) {
