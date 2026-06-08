@@ -82,6 +82,7 @@ type BtnProps = {
   className?: string;
   type?: "button" | "submit";
   newTab?: boolean;
+  disabled?: boolean;
 };
 
 const BTN_BASE =
@@ -105,8 +106,11 @@ export const Btn = ({
   className = "",
   type = "button",
   newTab = false,
+  disabled = false,
 }: BtnProps) => {
-  const classes = `${BTN_BASE} ${BTN_VARIANT[kind]} ${className}`;
+  const classes = `${BTN_BASE} ${BTN_VARIANT[kind]} ${className} ${
+    disabled ? "opacity-60 pointer-events-none" : ""
+  }`;
   const content = (
     <>
       {children}
@@ -133,7 +137,7 @@ export const Btn = ({
     );
   }
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button type={type} onClick={onClick} disabled={disabled} className={classes}>
       {content}
     </button>
   );
