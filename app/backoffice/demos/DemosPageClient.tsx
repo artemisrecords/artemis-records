@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   AdminBtn,
   AdminEyebrow,
@@ -233,13 +233,24 @@ function DemoDetail({
   accounts: Account[];
   onDecide: (decision: Decision) => void;
 }) {
-  // Champs contrôlés : un `<form action={serverAction}>` réinitialise les
-  // champs non-contrôlés après soumission, ce qui faisait « revenir » la
-  // valeur précédente. L'état local (réinitialisé au changement de démo via
-  // la `key` sur DemoDetail) conserve la valeur choisie.
+  // Édition « live » des métadonnées. On évite `<form action={serverAction}>`,
+  // qui réinitialise le formulaire après chaque envoi : combiné à la
+  // ré-hydratation de `revalidatePath`, ce reset faisait clignoter l'ancienne
+  // valeur (surtout sur deux changements rapprochés). Ici l'affichage est
+  // piloté par l'état local et l'action serveur est appelée directement dans
+  // une transition. L'état est réinitialisé au changement de démo via la `key`.
+  const [, startTransition] = useTransition();
   const [assignedTo, setAssignedTo] = useState(demo.assignedTo ?? "");
   const [tags, setTags] = useState(demo.tags?.join(", ") ?? "");
   const [notes, setNotes] = useState(demo.notes ?? "");
+  const [rating, setRating] = useState<number | null>(demo.rating ?? null);
+
+  function saveMeta(fields: Record<string, string>) {
+    const fd = new FormData();
+    fd.set("id", demo.id);
+    for (const [k, v] of Object.entries(fields)) fd.set(k, v);
+    startTransition(() => updateDemoMetaAction(fd));
+  }
 
   return (
     <aside className="bg-paper-soft border border-ink/10 rounded-[2px] sticky top-[88px]">
@@ -272,37 +283,36 @@ function DemoDetail({
           </div>
 
           {/* Note ✦ cliquable */}
-          <form action={updateDemoMetaAction} className="mt-3">
-            <input type="hidden" name="id" value={demo.id} />
-            <div className="flex items-center gap-1.5">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="submit"
-                  name="rating"
-                  value={n}
-                  aria-label={`Noter ${n} sur 5`}
-                  className="text-magenta text-[16px] leading-none cursor-pointer hover:scale-110 transition-transform"
-                >
-                  <span className={demo.rating && n <= demo.rating ? "" : "opacity-35"}>
-                    ✦
-                  </span>
-                </button>
-              ))}
-              {demo.rating ? (
-                <button
-                  type="submit"
-                  name="rating"
-                  value="0"
-                  aria-label="Effacer la note"
-                  title="Effacer la note"
-                  className="ml-2 text-beige-sable/55 text-[12px] leading-none cursor-pointer hover:text-magenta transition-colors"
-                >
-                  ✕ effacer
-                </button>
-              ) : null}
-            </div>
-          </form>
+          <div className="mt-3 flex items-center gap-1.5">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => {
+                  setRating(n);
+                  saveMeta({ rating: String(n) });
+                }}
+                aria-label={`Noter ${n} sur 5`}
+                className="text-magenta text-[16px] leading-none cursor-pointer hover:scale-110 transition-transform"
+              >
+                <span className={rating && n <= rating ? "" : "opacity-35"}>✦</span>
+              </button>
+            ))}
+            {rating ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setRating(null);
+                  saveMeta({ rating: "0" });
+                }}
+                aria-label="Effacer la note"
+                title="Effacer la note"
+                className="ml-2 text-beige-sable/55 text-[12px] leading-none cursor-pointer hover:text-magenta transition-colors"
+              >
+                ✕ effacer
+              </button>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -327,26 +337,21 @@ function DemoDetail({
           </div>
           <div>
             <AdminEyebrow className="mb-1">Assigné à</AdminEyebrow>
-            <form action={updateDemoMetaAction}>
-              <input type="hidden" name="id" value={demo.id} />
-              <select
-                name="assignedTo"
-                value={assignedTo}
-                onChange={(e) => {
-                  const form = e.currentTarget.form;
-                  setAssignedTo(e.target.value);
-                  form?.requestSubmit();
-                }}
-                className="w-full bg-paper border border-ink/15 px-2.5 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
-              >
-                <option value="">Personne</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            </form>
+            <select
+              value={assignedTo}
+              onChange={(e) => {
+                setAssignedTo(e.target.value);
+                saveMeta({ assignedTo: e.target.value });
+              }}
+              className="w-full bg-paper border border-ink/15 px-2.5 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
+            >
+              <option value="">Personne</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -368,31 +373,27 @@ function DemoDetail({
         </div>
 
         {/* Étiquettes éditables : un champ texte (séparé par virgules) */}
-        <form action={updateDemoMetaAction}>
-          <input type="hidden" name="id" value={demo.id} />
+        <div>
           <AdminEyebrow className="mb-2">
             Étiquettes (séparées par des virgules)
           </AdminEyebrow>
           <div className="flex items-center gap-2">
             <input
-              name="tags"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="pop, voix, prod léchée…"
               className="flex-1 bg-paper border border-ink/15 px-3 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
             />
-            <AdminBtn kind="secondary" type="submit">
+            <AdminBtn kind="secondary" onClick={() => saveMeta({ tags })}>
               OK
             </AdminBtn>
           </div>
-        </form>
+        </div>
 
         {/* Notes internes enregistrables */}
-        <form action={updateDemoMetaAction}>
-          <input type="hidden" name="id" value={demo.id} />
+        <div>
           <AdminEyebrow className="mb-2">Notes internes</AdminEyebrow>
           <textarea
-            name="notes"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -400,11 +401,11 @@ function DemoDetail({
             className="w-full bg-paper border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] italic text-ink outline-none focus:border-magenta transition-colors rounded-[2px] resize-y leading-[1.55]"
           />
           <div className="mt-2 flex justify-end">
-            <AdminBtn kind="secondary" type="submit">
+            <AdminBtn kind="secondary" onClick={() => saveMeta({ notes })}>
               Enregistrer les notes
             </AdminBtn>
           </div>
-        </form>
+        </div>
 
         <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-ink/10">
           <AdminBtn kind="accent" onClick={() => onDecide("retenu")}>
