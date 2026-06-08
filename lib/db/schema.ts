@@ -108,8 +108,14 @@ export const demos = pgTable(
     assignedTo: text("assigned_to"),
     notes: text("notes"),
     receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+    // Date de la décision (retenu/refuse). null tant que « nouveau » ou après
+    // annulation. Sert à purger les démos traitées depuis plus de 2 mois.
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
   },
-  (t) => [index("demos_status_idx").on(t.status, t.receivedAt)],
+  (t) => [
+    index("demos_status_idx").on(t.status, t.receivedAt),
+    index("demos_decided_idx").on(t.decidedAt),
+  ],
 );
 
 export const demands = pgTable(
