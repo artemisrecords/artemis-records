@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, lt, ne } from "drizzle-orm";
 import { db } from "./index";
 import { demos } from "./schema";
 import type { DemoLink, DemoRow } from "./schema";
@@ -36,9 +36,32 @@ export async function setDemoStatus(
   status: DemoStatus,
   notes?: string,
 ): Promise<void> {
-  const patch: Partial<typeof demos.$inferInsert> = { status };
+  const patch: Partial<typeof demos.$inferInsert> = {
+    status,
+    // Horodate la décision (retenu/refuse) ; remise à null si l'on repasse
+    // en « nouveau » (annulation). C'est l'ancre des 2 mois avant purge.
+    decidedAt: status === "nouveau" ? null : new Date(),
+  };
   if (notes !== undefined) patch.notes = notes;
   await db.update(demos).set(patch).where(eq(demos.id, id));
+}
+
+/**
+ * Supprime définitivement les démos traitées (statut != « nouveau ») dont la
+ * décision est antérieure à `before`. Renvoie le nombre de lignes supprimées.
+ */
+export async function purgeProcessedDemos(before: Date): Promise<number> {
+  const rows = await db
+    .delete(demos)
+    .where(
+      and(
+        ne(demos.status, "nouveau"),
+        isNotNull(demos.decidedAt),
+        lt(demos.decidedAt, before),
+      ),
+    )
+    .returning({ id: demos.id });
+  return rows.length;
 }
 
 export async function updateDemoMeta(
