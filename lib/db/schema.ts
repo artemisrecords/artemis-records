@@ -136,6 +136,28 @@ export const demands = pgTable(
   (t) => [index("demands_status_idx").on(t.status, t.receivedAt)],
 );
 
+export const contracts = pgTable(
+  "contracts",
+  {
+    id: text("id").primaryKey(), // réf affichée, immuable : ct-YYYY-NNN
+    title: text("title").notNull(),
+    party: text("party").notNull(),
+    artistId: text("artist_id").references(() => artists.id, {
+      onDelete: "set null",
+    }),
+    type: text("type").notNull(),
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    amount: text("amount").notNull().default(""),
+    status: text("status").notNull().default("a_signer"), // en_cours|a_signer|echu|archive
+    notes: text("notes"),
+    signedBy: jsonb("signed_by").$type<string[]>().notNull().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("contracts_status_idx").on(t.status, t.endDate)],
+);
+
 export const settings = pgTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
@@ -192,3 +214,5 @@ export type DemoRow = typeof demos.$inferSelect;
 export type DemandRow = typeof demands.$inferSelect;
 export type SubscriberRow = typeof subscribers.$inferSelect;
 export type SettingRow = typeof settings.$inferSelect;
+export type ContractRow = typeof contracts.$inferSelect;
+export type NewContract = typeof contracts.$inferInsert;
