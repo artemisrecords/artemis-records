@@ -12,6 +12,7 @@ import {
   createArtistSchema,
 } from "@/lib/validation/artist";
 import * as m from "@/lib/db/artist-mutations";
+import { requireArtistAccess, requireRole } from "@/lib/auth-helpers";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -24,9 +25,11 @@ function revalidateArtist(id: string) {
   revalidatePath(`/backoffice/artistes/${id}`);
   revalidatePath("/artists");
   revalidatePath("/artists/[id]", "page");
+  revalidatePath("/espace");
 }
 
 export async function saveIdentity(id: string, input: unknown): Promise<ActionResult> {
+  await requireArtistAccess(id);
   const parsed = identitySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   await m.updateIdentity(id, parsed.data);
@@ -35,6 +38,7 @@ export async function saveIdentity(id: string, input: unknown): Promise<ActionRe
 }
 
 export async function saveBio(id: string, input: unknown): Promise<ActionResult> {
+  await requireArtistAccess(id);
   const parsed = bioSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   await m.updateBio(id, parsed.data);
@@ -43,12 +47,14 @@ export async function saveBio(id: string, input: unknown): Promise<ActionResult>
 }
 
 export async function setArtistPublished(id: string, published: boolean): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   await m.setPublished(id, published);
   revalidateArtist(id);
   return { ok: true };
 }
 
 export async function saveDiscography(id: string, items: unknown): Promise<ActionResult> {
+  await requireArtistAccess(id);
   const parsed = discographySchema.safeParse(items);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   await m.replaceDiscography(id, parsed.data);
@@ -57,6 +63,7 @@ export async function saveDiscography(id: string, items: unknown): Promise<Actio
 }
 
 export async function saveEmbeds(id: string, items: unknown): Promise<ActionResult> {
+  await requireArtistAccess(id);
   const parsed = embedsSchema.safeParse(items);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   await m.replaceEmbeds(id, parsed.data);
@@ -65,6 +72,7 @@ export async function saveEmbeds(id: string, items: unknown): Promise<ActionResu
 }
 
 export async function saveSocials(id: string, socials: unknown): Promise<ActionResult> {
+  await requireArtistAccess(id);
   const parsed = socialsSchema.safeParse(socials);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   await m.replaceSocials(id, parsed.data);
@@ -73,6 +81,7 @@ export async function saveSocials(id: string, socials: unknown): Promise<ActionR
 }
 
 export async function saveShow(artistId: string, input: unknown): Promise<ActionResult> {
+  await requireArtistAccess(artistId);
   const parsed = showSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   const id =
@@ -85,7 +94,9 @@ export async function saveShow(artistId: string, input: unknown): Promise<Action
 }
 
 export async function removeShow(artistId: string, showId: string): Promise<ActionResult> {
-  await m.deleteShow(showId);
+  await requireArtistAccess(artistId);
+  const removed = await m.deleteShow(showId, artistId);
+  if (!removed) return { ok: false, error: "Cette date n'appartient pas à cette fiche." };
   revalidateArtist(artistId);
   return { ok: true };
 }
@@ -94,12 +105,14 @@ export async function saveMedia(
   id: string,
   media: { portraitUrl?: string; coverUrl?: string; gallery?: string[] },
 ): Promise<ActionResult> {
+  await requireArtistAccess(id);
   await m.setMedia(id, media);
   revalidateArtist(id);
   return { ok: true };
 }
 
 export async function archiveArtist(id: string, confirm: string): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   if (confirm.trim().toLowerCase() !== "oui") {
     return { ok: false, error: "Tapez « oui » pour confirmer la suppression." };
   }
@@ -110,6 +123,7 @@ export async function archiveArtist(id: string, confirm: string): Promise<Action
 }
 
 export async function createArtistAction(input: unknown): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   const parsed = createArtistSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   const id = await m.createArtist(parsed.data);

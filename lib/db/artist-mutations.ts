@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "./index";
 import { artists, artistShows } from "./schema";
 import type { DiscoItem, Embed, ArtistShow } from "./schema";
@@ -138,6 +138,7 @@ export async function upsertShow(
   },
 ): Promise<string> {
   if (show.id) {
+    // Borné par artistId : on ne met à jour que les dates de CETTE fiche.
     await db
       .update(artistShows)
       .set({
@@ -148,7 +149,7 @@ export async function upsertShow(
         free: show.free,
         ticketUrl: show.ticketUrl === "" ? null : show.ticketUrl,
       })
-      .where(eq(artistShows.id, show.id));
+      .where(and(eq(artistShows.id, show.id), eq(artistShows.artistId, artistId)));
     return show.id;
   }
   const id = randomUUID();
@@ -165,8 +166,17 @@ export async function upsertShow(
   return id;
 }
 
-export async function deleteShow(showId: string): Promise<void> {
-  await db.delete(artistShows).where(eq(artistShows.id, showId));
+/** Avec `artistId`, la suppression est bornée aux dates de cette fiche. */
+export async function deleteShow(showId: string, artistId?: string): Promise<boolean> {
+  const rows = await db
+    .delete(artistShows)
+    .where(
+      artistId
+        ? and(eq(artistShows.id, showId), eq(artistShows.artistId, artistId))
+        : eq(artistShows.id, showId),
+    )
+    .returning({ id: artistShows.id });
+  return rows.length > 0;
 }
 
 export async function deleteArtist(id: string): Promise<void> {
