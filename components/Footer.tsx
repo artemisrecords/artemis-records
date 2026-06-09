@@ -31,7 +31,7 @@ export const Footer = () => {
       {[
         { href: "/about", l: "À propos" },
         { href: "/news", l: "Journal" },
-        { href: "/charte", l: "Charte graphique" },
+        { href: "/charte", l: "Notre charte" },
         { href: "/demo", l: "Proposer une démo" },
       ].map((x) => (
         <div key={x.href} className="text-[12px] mb-2.5 opacity-85 italic">
@@ -85,7 +85,7 @@ export const Footer = () => {
         <Link href="/legal">Mentions légales</Link>
         <Link href="/privacy">Confidentialité</Link>
         <Link href="/cgu">CGU</Link>
-        <Link href="/charte">Charte graphique</Link>
+        <Link href="/charte-graphique">Charte graphique</Link>
       </div>
     </div>
   </footer>
