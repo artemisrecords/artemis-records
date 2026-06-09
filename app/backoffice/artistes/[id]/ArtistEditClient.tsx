@@ -7,7 +7,6 @@ import {
   AdminBtn,
   AdminEyebrow,
   AdminField,
-  AdminSelect,
   AdminTextarea,
   Pill,
 } from "@/components/admin/AdminPrimitives";
@@ -772,16 +771,6 @@ export function ArtistEditClient({ artist }: { artist: ArtistWithShows }) {
               )}
             </div>
           </div>
-
-          <AdminSelect
-            label="Direction artistique référente"
-            defaultValue="u1"
-            options={[
-              { value: "u1", label: "Margaux Villeneuve" },
-              { value: "u2", label: "Jules Antonin" },
-              { value: "u3", label: "Inès Rocher" },
-            ]}
-          />
         </aside>
       </div>
     </div>
