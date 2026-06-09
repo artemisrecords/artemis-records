@@ -10,7 +10,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       request,
       body,
       onBeforeGenerateToken: async (pathname) => {
-        if (!pathname.startsWith("artists/")) {
+        if (!pathname.startsWith("artists/") && !pathname.startsWith("news/")) {
           throw new Error("Chemin d'upload non autorisé.");
         }
         return {
