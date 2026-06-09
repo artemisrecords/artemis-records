@@ -10,6 +10,7 @@ import {
   demands,
   subscribers,
   settings,
+  contracts,
   user,
 } from "../lib/db/schema";
 
@@ -564,6 +565,91 @@ async function mapUrl(u: string, blobPath: string): Promise<string> {
   return u;
 }
 
+type SeedContract = {
+  id: string;
+  title: string;
+  party: string;
+  artistId?: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  amount: string;
+  status: "en_cours" | "a_signer" | "echu" | "archive";
+  notes?: string;
+  signedBy?: string[];
+};
+
+const SEED_CONTRACTS: SeedContract[] = [
+  {
+    id: "ct-2024-001",
+    title: "Contrat d'artiste · Allicyone",
+    party: "Allicyone",
+    artistId: "allicyone",
+    type: "Contrat d'artiste · 3 ans",
+    startDate: "2024-03-01",
+    endDate: "2027-02-28",
+    amount: "-",
+    status: "en_cours",
+    signedBy: ["Allicyone", "M. Villeneuve"],
+  },
+  {
+    id: "ct-2025-001",
+    title: "Contrat d'artiste · Caëlya",
+    party: "Caëlya",
+    artistId: "caelya",
+    type: "Contrat d'artiste · 2 ans",
+    startDate: "2025-09-15",
+    endDate: "2027-09-14",
+    amount: "-",
+    status: "en_cours",
+    signedBy: ["Caëlya", "M. Villeneuve"],
+  },
+  {
+    id: "ct-2026-001",
+    title: "Synchro · Arte documentaire 'Rivières'",
+    party: "Arte France",
+    type: "Synchronisation · usage docu",
+    startDate: "2026-04-18",
+    endDate: "2026-12-31",
+    amount: "3 500 €",
+    status: "a_signer",
+    notes: "En attente du retour d'Arte sur le périmètre diffusion non-linéaire.",
+  },
+  {
+    id: "ct-2026-002",
+    title: "Booking · Rock School Barbey",
+    party: "Rock School Barbey, Bordeaux",
+    type: "Engagement scène · 28.05.2026",
+    startDate: "2026-03-10",
+    endDate: "2026-05-28",
+    amount: "1 200 € net",
+    status: "en_cours",
+    signedBy: ["J. Antonin"],
+  },
+  {
+    id: "ct-2024-002",
+    title: "Distribution numérique · 2025",
+    party: "Believe Digital",
+    type: "Distribution · reconduction tacite",
+    startDate: "2024-01-01",
+    endDate: "2025-12-31",
+    amount: "%",
+    status: "echu",
+    notes: "À renégocier avant fin novembre si prolongation souhaitée.",
+  },
+  {
+    id: "ct-2025-002",
+    title: "Licence d'édition · Les Ruisseaux",
+    party: "Caëlya / Éditions Nord",
+    artistId: "caelya",
+    type: "Licence d'édition musicale",
+    startDate: "2025-10-12",
+    endDate: "2028-10-11",
+    amount: "50/50",
+    status: "archive",
+  },
+];
+
 async function main() {
   console.log("▸ Uploading assets + seeding artists…");
   for (const a of SEED_ARTISTS) {
@@ -736,6 +822,26 @@ async function main() {
         tags: s.tags ?? [],
         confirmedAt: new Date(s.subscribed),
         subscribedAt: new Date(s.subscribed),
+      })
+      .onConflictDoNothing();
+  }
+
+  console.log("▸ Seeding contracts…");
+  for (const c of SEED_CONTRACTS) {
+    await db
+      .insert(contracts)
+      .values({
+        id: c.id,
+        title: c.title,
+        party: c.party,
+        artistId: c.artistId ?? null,
+        type: c.type,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        amount: c.amount,
+        status: c.status,
+        notes: c.notes ?? null,
+        signedBy: c.signedBy ?? [],
       })
       .onConflictDoNothing();
   }
