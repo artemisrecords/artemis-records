@@ -3,11 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth-helpers";
-import {
-  createContractSchema,
-  updateContractSchema,
-  contractStatusSchema,
-} from "@/lib/validation/contract";
+import { createContractSchema, updateContractSchema } from "@/lib/validation/contract";
 import * as m from "@/lib/db/contract-mutations";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -38,15 +34,6 @@ export async function updateContractAction(id: string, input: unknown): Promise<
   const parsed = updateContractSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   await m.updateContract(id, parsed.data);
-  revalidateContracts(id);
-  return { ok: true };
-}
-
-export async function setContractStatusAction(id: string, status: unknown): Promise<ActionResult> {
-  await requireRole("superadmin", "admin");
-  const parsed = contractStatusSchema.safeParse(status);
-  if (!parsed.success) return { ok: false, error: "Statut invalide." };
-  await m.setContractStatus(id, parsed.data);
   revalidateContracts(id);
   return { ok: true };
 }
