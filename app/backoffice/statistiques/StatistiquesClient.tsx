@@ -1,57 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  AdminBtn,
   AdminEyebrow,
   KPI,
   PageFooter,
   PageHeader,
-  Pill,
   RuledDivider,
 } from "@/components/admin/AdminPrimitives";
-import { BarChart, Donut, Sparkline } from "@/components/admin/Charts";
-import type { Artist } from "@/lib/data";
+import { BarChart, Donut } from "@/components/admin/Charts";
+import type { LabelStats } from "@/lib/db/admin-queries";
 
 const RANGES = [
-  { k: "7j", label: "7 jours" },
-  { k: "30j", label: "30 jours" },
-  { k: "90j", label: "3 mois" },
-  { k: "12m", label: "12 mois" },
+  { k: "7j", label: "7 jours", days: 7 },
+  { k: "30j", label: "30 jours", days: 30 },
+  { k: "90j", label: "3 mois", days: 90 },
+  { k: "12m", label: "12 mois", days: 365 },
 ] as const;
 
-const STREAMS_BY_ARTIST = [
-  { artist: "Allicyone", spotify: 184200, youtube: 62400, bandcamp: 4100 },
-  { artist: "Caëlya", spotify: 42600, youtube: 18100, bandcamp: 6800 },
-];
+type RangeKey = (typeof RANGES)[number]["k"];
 
-const CITIES = [
-  { city: "Paris", listeners: 12840 },
-  { city: "Lyon", listeners: 4120 },
-  { city: "Marseille", listeners: 3810 },
-  { city: "Toulouse", listeners: 2960 },
-  { city: "Bordeaux", listeners: 2470 },
-  { city: "Bruxelles", listeners: 2240 },
-  { city: "Lille", listeners: 1980 },
-  { city: "Nantes", listeners: 1640 },
-];
+const KIND_LABEL: Record<string, string> = {
+  demo: "Démos",
+  demande: "Demandes",
+  news: "Actualités",
+  abonne: "Abonnés",
+};
 
-export function StatistiquesClient({ artists }: { artists: Artist[] }) {
-  const [range, setRange] = useState<(typeof RANGES)[number]["k"]>("30j");
+export function StatistiquesClient({ stats }: { stats: LabelStats }) {
+  const [range, setRange] = useState<RangeKey>("30j");
+
+  const cutoff = useMemo(() => {
+    const days = RANGES.find((r) => r.k === range)!.days;
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d.toISOString().slice(0, 10);
+  }, [range]);
+
+  const inRange = useMemo(
+    () => stats.events.filter((e) => e.date >= cutoff),
+    [stats.events, cutoff],
+  );
+
+  const byKind = useMemo(() => {
+    const counts: Record<string, number> = { demo: 0, demande: 0, news: 0, abonne: 0 };
+    for (const e of inRange) counts[e.kind] = (counts[e.kind] ?? 0) + 1;
+    return counts;
+  }, [inRange]);
+
+  const demosTotal = stats.demos.total || 1;
+  const demandsTotal = stats.demands.total || 1;
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
         chapter="08"
-        eyebrow="Lecture des chiffres · mis à jour il y a 4 h"
+        eyebrow="Activité du label · données internes"
         title="Statistiques"
-        italic="Chiffres agrégés depuis Spotify, YouTube et Bandcamp. À lire comme une météo, pas comme un oracle."
-        actions={
-          <>
-            <AdminBtn kind="secondary">Télécharger le rapport</AdminBtn>
-            <AdminBtn kind="primary">Connecter une plateforme</AdminBtn>
-          </>
-        }
+        italic="Les chiffres réels du label : roster, journal, démos, demandes, agenda, abonnés. (Les statistiques de streaming nécessiteraient une connexion aux plateformes.)"
       />
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -79,197 +85,112 @@ export function StatistiquesClient({ artists }: { artists: Artist[] }) {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPI
-          label="Streams cumulés"
-          value="320 420"
-          delta="+12,4 %"
-          hint="tous artistes, toutes plateformes"
-          spark={<Sparkline data={[50, 58, 62, 70, 74, 82, 90, 98, 110, 124]} />}
+          label="Artistes en ligne"
+          value={stats.artists.published}
+          hint={`${stats.artists.total} fiches au total`}
         />
         <KPI
-          label="Auditeurs uniques · 28j"
-          value="48 120"
-          delta="+8,1 %"
-          hint="41 pays"
-          spark={
-            <Sparkline
-              data={[30, 32, 34, 36, 38, 40, 42, 45, 46, 48]}
-              stroke="var(--color-bleu-nuit-700)"
-              fill="rgba(28,31,74,0.1)"
-            />
-          }
+          label="Démos à traiter"
+          value={stats.demos.nouveau}
+          hint={`${stats.demos.total} démos reçues`}
         />
         <KPI
-          label="Ajouts en playlists"
-          value="2 418"
-          delta="+4 éditoriales"
-          hint="dont 2 Spotify France"
-          spark={
-            <Sparkline
-              data={[1800, 1920, 1980, 2040, 2120, 2200, 2280, 2340, 2380, 2418]}
-              stroke="var(--color-vert-foret-700)"
-              fill="rgba(35,52,15,0.1)"
-            />
-          }
+          label="Demandes ouvertes"
+          value={stats.demands.ouverte}
+          hint={`${stats.demands.total} demandes au total`}
         />
         <KPI
-          label="Revenus estimés"
-          value="1 284 €"
-          delta="à recevoir · 30j"
-          hint="avant commissions distributeur"
-          spark={
-            <Sparkline
-              data={[420, 480, 540, 620, 700, 820, 940, 1060, 1180, 1284]}
-              stroke="var(--color-taupe-700)"
-              fill="rgba(141,123,104,0.14)"
-            />
-          }
+          label="Concerts à venir"
+          value={stats.shows.upcoming}
+          hint={`${stats.shows.total} dates planifiées`}
         />
       </section>
 
-      <RuledDivider label="Par artiste" />
+      <RuledDivider label={`Nouvelles entrées · ${RANGES.find((r) => r.k === range)!.label}`} />
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {artists.map((a, i) => {
-          const s = STREAMS_BY_ARTIST[i] ?? {
-            spotify: 0,
-            youtube: 0,
-            bandcamp: 0,
-          };
-          const total = s.spotify + s.youtube + s.bandcamp;
-          return (
-            <div
-              key={a.id}
-              className="bg-paper-soft border border-ink/10 rounded-[2px] overflow-hidden"
-            >
-              <div
-                className="h-[120px] bg-cover bg-center grain relative"
-                style={{
-                  backgroundImage: `linear-gradient(180deg, rgba(28,31,74,0.15), rgba(28,31,74,0.55)), url(${a.coverUrl})`,
-                }}
-              >
-                <div className="absolute inset-0 flex items-end p-5 text-beige-sable">
-                  <div className="flex items-end justify-between gap-3 w-full">
-                    <div>
-                      <div className="text-[10px] tracking-eyebrow uppercase font-bold text-magenta">
-                        {a.genre}
-                      </div>
-                      <div className="font-display uppercase tracking-display text-[28px] leading-none mt-1">
-                        {a.name}
-                      </div>
-                    </div>
-                    <Pill tone="magenta">+{10 + i * 3}% vs 30j</Pill>
-                  </div>
-                </div>
-              </div>
-              <div className="p-5 grid grid-cols-2 gap-5">
-                <div>
-                  <AdminEyebrow className="mb-2">
-                    Sources · {total.toLocaleString("fr-FR")} écoutes
-                  </AdminEyebrow>
-                  <Donut
-                    size={100}
-                    thickness={12}
-                    segments={[
-                      {
-                        label: "Spotify",
-                        value: s.spotify,
-                        color: "var(--color-vert-foret-700)",
-                      },
-                      {
-                        label: "YouTube",
-                        value: s.youtube,
-                        color: "var(--color-magenta)",
-                      },
-                      {
-                        label: "Bandcamp",
-                        value: s.bandcamp,
-                        color: "var(--color-bleu-nuit-700)",
-                      },
-                    ]}
-                  />
-                </div>
-                <div>
-                  <AdminEyebrow className="mb-2">
-                    Courbe mensuelle
-                  </AdminEyebrow>
-                  <BarChart
-                    height={100}
-                    data={Array.from({ length: 12 }, (_, m) => ({
-                      label: new Date(2025, m, 1)
-                        .toLocaleDateString("fr-FR", { month: "narrow" })
-                        .toUpperCase(),
-                      value: 20 + Math.round(Math.sin(m + i) * 6 + m * (i + 1)),
-                      accent: m === 11,
-                    }))}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </section>
-
-      <RuledDivider label="Où nous écoute-t-on" />
-
-      <section className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-6 items-start">
         <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-6">
-          <AdminEyebrow className="mb-4">Top villes</AdminEyebrow>
-          <ul className="flex flex-col gap-3">
-            {CITIES.map((c, i) => {
-              const pct = (c.listeners / CITIES[0].listeners) * 100;
-              return (
-                <li key={c.city} className="grid grid-cols-[28px_1fr_auto] gap-4 items-center">
-                  <span className="font-display text-[14px] text-ink-subtle">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-baseline justify-between mb-1.5">
-                      <span className="font-serif text-[14px]">{c.city}</span>
-                      <span className="italic text-[12px] text-ink-muted">
-                        {c.listeners.toLocaleString("fr-FR")} auditeurs
-                      </span>
-                    </div>
-                    <div className="h-[4px] bg-ink/8 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-magenta"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                  <span className="text-[11px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-                    {pct > 80 ? "★" : pct > 40 ? "·" : ""}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <AdminEyebrow className="mb-4">Reçu sur la période</AdminEyebrow>
+          <BarChart
+            height={120}
+            data={[
+              { label: "DÉMOS", value: byKind.demo },
+              { label: "DEM.", value: byKind.demande, accent: true },
+              { label: "NEWS", value: byKind.news },
+              { label: "ABO.", value: byKind.abonne },
+            ]}
+          />
+          <div className="grid grid-cols-2 gap-3 mt-5">
+            {(["demo", "demande", "news", "abonne"] as const).map((k) => (
+              <div key={k} className="flex items-baseline justify-between border-t border-ink/8 pt-2">
+                <span className="text-[11px] tracking-eyebrow uppercase font-bold text-ink-subtle">
+                  {KIND_LABEL[k]}
+                </span>
+                <span className="font-display text-[20px]">{byKind[k]}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-6 flex flex-col gap-5">
-          <div>
-            <AdminEyebrow className="mb-3">Répartition par pays</AdminEyebrow>
-            <Donut
-              size={140}
-              thickness={16}
-              segments={[
-                { label: "France", value: 72, color: "var(--color-bleu-nuit-700)" },
-                { label: "Belgique", value: 11, color: "var(--color-magenta)" },
-                { label: "Suisse", value: 6, color: "var(--color-vert-foret-700)" },
-                { label: "Québec", value: 5, color: "var(--color-taupe-700)" },
-                { label: "Reste", value: 6, color: "var(--color-bleu-nuit-300)" },
-              ]}
-              centerLabel="41"
-              centerHint="Pays"
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-6 flex flex-col items-center">
+            <AdminEyebrow className="mb-4 self-start">Démos par statut</AdminEyebrow>
+            {stats.demos.total === 0 ? (
+              <p className="italic text-[13px] text-ink-muted py-8">Aucune démo.</p>
+            ) : (
+              <Donut
+                size={140}
+                thickness={16}
+                centerLabel={String(stats.demos.total)}
+                centerHint="Démos"
+                segments={[
+                  { label: "Nouveau", value: stats.demos.nouveau, color: "var(--color-magenta)" },
+                  { label: "Retenu", value: stats.demos.retenu, color: "var(--color-vert-foret-700)" },
+                  { label: "Refusé", value: stats.demos.refuse, color: "var(--color-taupe-700)" },
+                ]}
+              />
+            )}
           </div>
-          <div className="pt-4 border-t border-ink/10">
-            <AdminEyebrow className="mb-2">À noter</AdminEyebrow>
-            <p className="italic text-[13px] text-ink-muted leading-[1.55]">
-              Forte progression au Québec ce mois-ci (+34 %). À suivre pour
-              une éventuelle programmation côté Montréal à l&apos;automne.
-            </p>
+
+          <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-6 flex flex-col items-center">
+            <AdminEyebrow className="mb-4 self-start">Demandes par statut</AdminEyebrow>
+            {stats.demands.total === 0 ? (
+              <p className="italic text-[13px] text-ink-muted py-8">Aucune demande.</p>
+            ) : (
+              <Donut
+                size={140}
+                thickness={16}
+                centerLabel={String(stats.demands.total)}
+                centerHint="Demandes"
+                segments={[
+                  { label: "Ouverte", value: stats.demands.ouverte, color: "var(--color-magenta)" },
+                  { label: "En cours", value: stats.demands.en_cours, color: "var(--color-bleu-nuit-700)" },
+                  { label: "Close", value: stats.demands.close, color: "var(--color-taupe-700)" },
+                ]}
+              />
+            )}
           </div>
         </div>
+      </section>
+
+      <RuledDivider label="Contenu & audience" />
+
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KPI
+          label="Actualités publiées"
+          value={stats.news.published}
+          hint={`${stats.news.total} articles au total`}
+        />
+        <KPI
+          label="Abonnés newsletter"
+          value={stats.subscribers.total}
+          hint={`${stats.subscribers.confirmed} confirmés`}
+        />
+        <KPI
+          label="Taux de démos retenues"
+          value={`${Math.round((stats.demos.retenu / demosTotal) * 100)} %`}
+          hint={`${stats.demos.retenu} retenues · ${stats.demands.close}/${demandsTotal} demandes closes`}
+        />
       </section>
 
       <PageFooter page="08 / 10" chapter="Statistiques" />

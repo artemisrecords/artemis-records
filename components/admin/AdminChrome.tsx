@@ -4,13 +4,16 @@ import { useState, type ReactNode } from "react";
 import { Sidebar, type SessionUser } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { CommandPalette, useCommandPaletteShortcut } from "./CommandPalette";
+import type { NotifItem } from "@/lib/db/admin-queries";
 
 export function AdminChrome({
   children,
   user,
+  notifications = [],
 }: {
   children: ReactNode;
   user: SessionUser;
+  notifications?: NotifItem[];
 }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -33,6 +36,7 @@ export function AdminChrome({
         <Topbar
           onOpenPalette={() => setPaletteOpen(true)}
           onOpenMobileMenu={() => setMobileOpen(true)}
+          notifications={notifications}
         />
         <main
           id="admin-content"

@@ -1,7 +1,7 @@
-import { getArtists } from "@/lib/db/queries";
+import { getLabelStats } from "@/lib/db/admin-queries";
 import { StatistiquesClient } from "./StatistiquesClient";
 
 export default async function StatistiquesPage() {
-  const artists = await getArtists();
-  return <StatistiquesClient artists={artists} />;
+  const stats = await getLabelStats();
+  return <StatistiquesClient stats={stats} />;
 }
