@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { newsSchema, createNewsSchema } from "@/lib/validation/news";
 import * as m from "@/lib/db/news-mutations";
+import { requireRole } from "@/lib/auth-helpers";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -19,6 +20,7 @@ function revalidateNews(id: string) {
 }
 
 export async function saveNews(id: string, input: unknown): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   const parsed = newsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   await m.updateNews(id, parsed.data);
@@ -27,18 +29,21 @@ export async function saveNews(id: string, input: unknown): Promise<ActionResult
 }
 
 export async function saveNewsImage(id: string, imageUrl: string): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   await m.setNewsImage(id, imageUrl);
   revalidateNews(id);
   return { ok: true };
 }
 
 export async function setNewsPublished(id: string, published: boolean): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   await m.setPublished(id, published);
   revalidateNews(id);
   return { ok: true };
 }
 
 export async function deleteNews(id: string, confirm: string): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   if (confirm.trim().toLowerCase() !== "oui") {
     return { ok: false, error: "Tapez « oui » pour confirmer la suppression." };
   }
@@ -49,6 +54,7 @@ export async function deleteNews(id: string, confirm: string): Promise<ActionRes
 }
 
 export async function createNewsAction(input: unknown): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   const parsed = createNewsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error.issues) };
   const id = await m.createNews(parsed.data);
