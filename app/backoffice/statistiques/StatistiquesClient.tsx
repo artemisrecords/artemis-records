@@ -173,9 +173,9 @@ export function StatistiquesClient({ stats }: { stats: LabelStats }) {
         </div>
       </section>
 
-      <RuledDivider label="Contenu & audience" />
+      <RuledDivider label="Contenu, audience & juridique" />
 
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPI
           label="Actualités publiées"
           value={stats.news.published}
@@ -185,6 +185,11 @@ export function StatistiquesClient({ stats }: { stats: LabelStats }) {
           label="Abonnés newsletter"
           value={stats.subscribers.total}
           hint={`${stats.subscribers.confirmed} confirmés`}
+        />
+        <KPI
+          label="Contrats en vigueur"
+          value={stats.contracts.active}
+          hint={`${stats.contracts.total} contrats au total`}
         />
         <KPI
           label="Taux de démos retenues"
