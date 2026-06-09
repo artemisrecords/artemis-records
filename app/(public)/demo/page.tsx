@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 import { Btn, ChapterTitle, Eyebrow } from "@/components/Primitives";
 import { Field, SuccessPanel, TextArea } from "@/components/FormFields";
+import { submitDemo, type DemoFormState } from "./actions";
 
 const CHECKLIST = [
   ["Des démos finalisées", "Pas besoin de master, mais un mix lisible."],
@@ -12,7 +13,11 @@ const CHECKLIST = [
 ] as const;
 
 export default function DemoPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [state, formAction, pending] = useActionState<DemoFormState, FormData>(
+    submitDemo,
+    null,
+  );
+  const errors = state?.errors;
 
   return (
     <section className="bg-paper px-[clamp(24px,4vw,56px)] py-[clamp(56px,8vw,96px)]">
@@ -28,43 +33,74 @@ export default function DemoPage() {
       </p>
       <div className="h-10" />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-14">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSubmitted(true);
-          }}
-        >
-          {submitted ? (
-            <SuccessPanel
-              title="Bien reçu."
-              body="Nous écoutons votre démo sous quinze jours. Merci de votre confiance."
-            />
-          ) : (
-            <>
-              <Field label="Nom d'artiste" placeholder="Votre projet" />
-              <Field label="Nom civil" placeholder="Nom, prénom" />
-              <Field label="Courriel" type="email" placeholder="vous@exemple.fr" />
-              <Field
-                label="Lien d'écoute"
-                type="url"
-                placeholder="SoundCloud, Bandcamp, YouTube…"
-              />
-              <Field label="Réseaux sociaux" placeholder="Instagram, TikTok" />
-              <TextArea
-                label="Votre démarche"
-                placeholder="Qui êtes-vous ? Quelle musique ? Quelles envies ?"
-                rows={6}
-              />
-              <div className="text-[12px] italic text-ink-muted mb-5">
-                En envoyant ce formulaire, vous acceptez que nous conservions
-                vos informations pendant 12 mois.
+        {state?.ok ? (
+          <SuccessPanel
+            title="Bien reçu."
+            body="Nous écoutons votre démo sous quinze jours. Merci de votre confiance."
+          />
+        ) : (
+          <form action={formAction}>
+            {errors && Object.keys(errors).length > 0 && (
+              <div
+                role="alert"
+                className="mb-5 text-[13px] italic text-magenta"
+              >
+                Le formulaire contient des erreurs. Corrigez les champs
+                signalés ci-dessous.
               </div>
-              <Btn kind="accent" type="submit">
-                Envoyer la démo
-              </Btn>
-            </>
-          )}
-        </form>
+            )}
+            <Field
+              name="artist"
+              label="Nom d'artiste"
+              placeholder="Votre projet"
+              required
+              error={errors?.artist}
+            />
+            <Field
+              name="contact"
+              label="Nom civil"
+              placeholder="Nom, prénom"
+              required
+              error={errors?.contact}
+            />
+            <Field
+              name="email"
+              label="Courriel"
+              type="email"
+              placeholder="vous@exemple.fr"
+              required
+              error={errors?.email}
+            />
+            <Field
+              name="listenUrl"
+              label="Lien d'écoute"
+              type="url"
+              placeholder="SoundCloud, Bandcamp, YouTube…"
+              required
+              error={errors?.listenUrl}
+            />
+            <Field
+              name="socials"
+              label="Réseaux sociaux"
+              placeholder="Instagram, TikTok"
+              error={errors?.socials}
+            />
+            <TextArea
+              name="pitch"
+              label="Votre démarche"
+              placeholder="Qui êtes-vous ? Quelle musique ? Quelles envies ?"
+              rows={6}
+              error={errors?.pitch}
+            />
+            <div className="text-[12px] italic text-ink-muted mb-5">
+              En envoyant ce formulaire, vous acceptez que nous conservions vos
+              informations pendant 12 mois.
+            </div>
+            <Btn kind="accent" type="submit" disabled={pending}>
+              {pending ? "Envoi…" : "Envoyer la démo"}
+            </Btn>
+          </form>
+        )}
         <aside>
           <Eyebrow>Ce que nous écoutons</Eyebrow>
           <div className="mt-4.5">

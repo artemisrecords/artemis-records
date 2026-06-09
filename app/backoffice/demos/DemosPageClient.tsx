@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   AdminBtn,
   AdminEyebrow,
@@ -9,27 +9,40 @@ import {
   Pill,
 } from "@/components/admin/AdminPrimitives";
 import { MultiPillFilter } from "@/components/admin/MultiPillFilter";
-import {
-  DEMO_STATUS_LABEL,
-  type Demo,
-  type DemoStatus,
-} from "@/lib/adminData";
+import { DEMO_STATUS_LABEL, type Demo, type DemoStatus } from "@/lib/adminData";
 import { formatDate } from "@/lib/data";
+import { DecisionDialog } from "@/components/admin/DecisionDialog";
+import { CancelDecisionDialog } from "@/components/admin/CancelDecisionDialog";
+import { SelectMenu } from "@/components/admin/SelectMenu";
+import type { Decision } from "@/lib/demoEmails";
+import { updateDemoMetaAction } from "./actions";
+
+export type Account = { id: string; name: string };
 
 const FILTER_OPTIONS: { k: DemoStatus | "tous"; label: string }[] = [
   { k: "tous", label: "Tous" },
   { k: "nouveau", label: "Nouveaux" },
-  { k: "ecoute", label: "À écouter" },
   { k: "retenu", label: "Retenus" },
   { k: "refuse", label: "Refusés" },
 ];
 
-export function DemosPageClient({ demos }: { demos: Demo[] }) {
+export function DemosPageClient({
+  demos,
+  accounts,
+}: {
+  demos: Demo[];
+  accounts: Account[];
+}) {
   const [selectedFilters, setSelectedFilters] = useState<Set<DemoStatus>>(
     new Set(),
   );
   const [selectedId, setSelectedId] = useState<string>(demos[0]?.id ?? "");
   const [query, setQuery] = useState("");
+  const [decisionFor, setDecisionFor] = useState<{
+    demo: Demo;
+    decision: Decision;
+  } | null>(null);
+  const [cancelFor, setCancelFor] = useState<Demo | null>(null);
 
   const filtered = useMemo(() => {
     return demos.filter((d) => {
@@ -50,7 +63,6 @@ export function DemosPageClient({ demos }: { demos: Demo[] }) {
     const c: Record<DemoStatus | "tous", number> = {
       tous: demos.length,
       nouveau: 0,
-      ecoute: 0,
       retenu: 0,
       refuse: 0,
     };
@@ -153,7 +165,7 @@ export function DemosPageClient({ demos }: { demos: Demo[] }) {
                         )}
                       </div>
                       <div className="italic text-[12px] text-ink-muted truncate mt-0.5">
-                        {d.genre} · {d.city} · {d.duration}
+                        {[d.genre, d.city, d.duration].filter(Boolean).join(" · ")}
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {d.tags?.slice(0, 3).map((t) => (
@@ -189,13 +201,73 @@ export function DemosPageClient({ demos }: { demos: Demo[] }) {
           </ul>
         </div>
 
-        {selected && <DemoDetail demo={selected} />}
+        {selected && (
+          <DemoDetail
+            key={selected.id}
+            demo={selected}
+            accounts={accounts}
+            onDecide={(decision) =>
+              setDecisionFor({ demo: selected, decision })
+            }
+            onCancel={() => setCancelFor(selected)}
+          />
+        )}
       </div>
+
+      {decisionFor && (
+        <DecisionDialog
+          key={`${decisionFor.demo.id}-${decisionFor.decision}`}
+          demoId={decisionFor.demo.id}
+          artist={decisionFor.demo.artist}
+          email={decisionFor.demo.email}
+          decision={decisionFor.decision}
+          onClose={() => setDecisionFor(null)}
+        />
+      )}
+
+      {cancelFor && (
+        <CancelDecisionDialog
+          key={`cancel-${cancelFor.id}`}
+          demoId={cancelFor.id}
+          artist={cancelFor.artist}
+          status={cancelFor.status as DemoStatus}
+          onClose={() => setCancelFor(null)}
+        />
+      )}
     </div>
   );
 }
 
-function DemoDetail({ demo }: { demo: Demo }) {
+function DemoDetail({
+  demo,
+  accounts,
+  onDecide,
+  onCancel,
+}: {
+  demo: Demo;
+  accounts: Account[];
+  onDecide: (decision: Decision) => void;
+  onCancel: () => void;
+}) {
+  // Édition « live » des métadonnées. On évite `<form action={serverAction}>`,
+  // qui réinitialise le formulaire après chaque envoi : combiné à la
+  // ré-hydratation de `revalidatePath`, ce reset faisait clignoter l'ancienne
+  // valeur (surtout sur deux changements rapprochés). Ici l'affichage est
+  // piloté par l'état local et l'action serveur est appelée directement dans
+  // une transition. L'état est réinitialisé au changement de démo via la `key`.
+  const [, startTransition] = useTransition();
+  const [assignedTo, setAssignedTo] = useState(demo.assignedTo ?? "");
+  const [tags, setTags] = useState(demo.tags?.join(", ") ?? "");
+  const [notes, setNotes] = useState(demo.notes ?? "");
+  const [rating, setRating] = useState<number | null>(demo.rating ?? null);
+
+  function saveMeta(fields: Record<string, string>) {
+    const fd = new FormData();
+    fd.set("id", demo.id);
+    for (const [k, v] of Object.entries(fields)) fd.set(k, v);
+    startTransition(() => updateDemoMetaAction(fd));
+  }
+
   return (
     <aside className="bg-paper-soft border border-ink/10 rounded-[2px] sticky top-[88px]">
       <header className="p-6 bg-bleu-nuit-700 text-beige-sable relative overflow-hidden rounded-t-[2px]">
@@ -203,7 +275,7 @@ function DemoDetail({ demo }: { demo: Demo }) {
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <AdminEyebrow className="!text-magenta">
-              {demo.id} · reçue le {formatDate(demo.receivedAt)}
+              reçue le {formatDate(demo.receivedAt)}
             </AdminEyebrow>
             <Pill
               tone={
@@ -223,40 +295,42 @@ function DemoDetail({ demo }: { demo: Demo }) {
             {demo.artist}
           </h2>
           <div className="italic text-[14px] text-beige-sable/80 mt-1">
-            {demo.genre} · {demo.city} · {demo.duration}
+            {[demo.genre, demo.city, demo.duration].filter(Boolean).join(" · ")}
           </div>
-          {demo.rating && (
-            <div className="text-magenta text-[14px] tracking-[0.25em] mt-3">
-              {"✦".repeat(demo.rating)}
-              <span className="opacity-35">{"✦".repeat(5 - demo.rating)}</span>
-            </div>
-          )}
+
+          {/* Note ✦ cliquable */}
+          <div className="mt-3 flex items-center gap-1.5">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => {
+                  setRating(n);
+                  saveMeta({ rating: String(n) });
+                }}
+                aria-label={`Noter ${n} sur 5`}
+                className="text-magenta text-[16px] leading-none cursor-pointer hover:scale-110 transition-transform"
+              >
+                <span className={rating && n <= rating ? "" : "opacity-35"}>✦</span>
+              </button>
+            ))}
+            {rating ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setRating(null);
+                  saveMeta({ rating: "0" });
+                }}
+                aria-label="Effacer la note"
+                title="Effacer la note"
+                className="ml-2 text-beige-sable/55 text-[12px] leading-none cursor-pointer hover:text-magenta transition-colors"
+              >
+                ✕ effacer
+              </button>
+            ) : null}
+          </div>
         </div>
       </header>
-
-      <div className="px-6 py-4 border-b border-ink/10 bg-paper">
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            className="w-11 h-11 rounded-full bg-magenta text-white flex items-center justify-center text-[14px] cursor-pointer hover:opacity-90"
-            aria-label="Lire"
-          >
-            ▶
-          </button>
-          <div className="flex-1">
-            <div className="text-[11px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-              Lecture · piste 1 / {demo.links.length}
-            </div>
-            <div className="relative h-[6px] bg-ink/10 rounded-full mt-2 overflow-hidden">
-              <div className="absolute inset-y-0 left-0 w-[34%] bg-bleu-nuit-700" />
-            </div>
-            <div className="flex justify-between mt-1 text-[11px] text-ink-subtle font-serif italic">
-              <span>1:17</span>
-              <span>3:42</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="p-6 flex flex-col gap-5">
         <div>
@@ -279,13 +353,18 @@ function DemoDetail({ demo }: { demo: Demo }) {
           </div>
           <div>
             <AdminEyebrow className="mb-1">Assigné à</AdminEyebrow>
-            <div className="font-serif text-[14px] text-ink">
-              {demo.assignedTo || (
-                <span className="italic text-ink-subtle">
-                  Personne · assigner
-                </span>
-              )}
-            </div>
+            <SelectMenu
+              value={assignedTo}
+              onChange={(v) => {
+                setAssignedTo(v);
+                saveMeta({ assignedTo: v });
+              }}
+              placeholder="Personne"
+              options={[
+                { value: "", label: "Personne" },
+                ...accounts.map((a) => ({ value: a.id, label: a.name })),
+              ]}
+            />
           </div>
         </div>
 
@@ -306,35 +385,62 @@ function DemoDetail({ demo }: { demo: Demo }) {
           </ul>
         </div>
 
-        {demo.tags && demo.tags.length > 0 && (
-          <div>
-            <AdminEyebrow className="mb-2">Étiquettes</AdminEyebrow>
-            <div className="flex flex-wrap gap-1.5">
-              {demo.tags.map((t) => (
-                <span
-                  key={t}
-                  className="text-[10px] tracking-[0.12em] uppercase font-bold text-ink-subtle bg-ink/6 px-2 py-0.5 rounded-full"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
+        {/* Étiquettes éditables : un champ texte (séparé par virgules) */}
+        <div>
+          <AdminEyebrow className="mb-2">
+            Étiquettes (séparées par des virgules)
+          </AdminEyebrow>
+          <div className="flex items-center gap-2">
+            <input
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="pop, voix, prod léchée…"
+              className="flex-1 bg-paper border border-ink/15 px-3 py-1.5 font-serif text-[13px] rounded-[2px] outline-none focus:border-magenta"
+            />
+            <AdminBtn kind="secondary" onClick={() => saveMeta({ tags })}>
+              OK
+            </AdminBtn>
           </div>
-        )}
+        </div>
 
+        {/* Notes internes enregistrables */}
         <div>
           <AdminEyebrow className="mb-2">Notes internes</AdminEyebrow>
           <textarea
             rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
             placeholder="Vos impressions à chaud : ce qui accroche, ce qui tempère, ce qu'il faut creuser…"
             className="w-full bg-paper border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] italic text-ink outline-none focus:border-magenta transition-colors rounded-[2px] resize-y leading-[1.55]"
           />
+          <div className="mt-2 flex justify-end">
+            <AdminBtn kind="secondary" onClick={() => saveMeta({ notes })}>
+              Enregistrer les notes
+            </AdminBtn>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-ink/10">
-          <AdminBtn kind="accent">Retenir</AdminBtn>
-          <AdminBtn kind="secondary">Marquer écouté</AdminBtn>
-          <AdminBtn kind="danger">Refuser avec tact</AdminBtn>
+          {demo.status === "nouveau" ? (
+            <>
+              <AdminBtn kind="accent" onClick={() => onDecide("retenu")}>
+                Retenir
+              </AdminBtn>
+              <AdminBtn kind="danger" onClick={() => onDecide("refuse")}>
+                Refuser avec tact
+              </AdminBtn>
+            </>
+          ) : (
+            <div className="flex items-center justify-between gap-3 w-full">
+              <span className="font-serif italic text-[13px] text-ink-muted">
+                {demo.status === "retenu" ? "Démo retenue" : "Démo refusée"} ·
+                réponse envoyée à l&apos;artiste.
+              </span>
+              <AdminBtn kind="secondary" onClick={onCancel}>
+                Annuler la décision
+              </AdminBtn>
+            </div>
+          )}
         </div>
       </div>
     </aside>

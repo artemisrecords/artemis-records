@@ -200,25 +200,34 @@
     background-size: 520px 520px;
   }
 
-  /* Infinite bottom-to-top scroll: pan each repeating tile upward by exactly
-     one tile height, so it loops with no visible seam. The two layers use
-     different tile sizes and durations → gentle parallax. The opacity twinkle
+  /* Infinite bottom-to-top scroll. We translate the layer upward by exactly one
+     tile height (the tile repeats, so the loop is seamless) using `transform`
+     rather than `background-position`: transforms are GPU-composited (paint
+     once, slide forever), whereas animating background-position forces a full
+     repaint of this huge masked element every frame — the cause of the jank.
+     Each layer is made one tile taller than its container and anchored at the
+     top, so sliding up never reveals a gap at the bottom. The two layers use
+     different tile sizes and durations → gentle parallax; the opacity twinkle
      keeps running alongside the pan. */
   .stars-rise.stars::before {
+    inset: -5% -5% auto -5%;
+    height: calc(110% + 420px);
     animation: var(--animate-twinkle-a), star-rise-a 52s linear infinite;
-    will-change: background-position;
+    will-change: transform;
   }
   .stars-rise.stars::after {
+    inset: -5% -5% auto -5%;
+    height: calc(110% + 520px);
     animation: var(--animate-twinkle-b), star-rise-b 38s linear infinite;
-    will-change: background-position;
+    will-change: transform;
   }
   @keyframes star-rise-a {
-    from { background-position: 0 0; }
-    to   { background-position: 0 -420px; }
+    from { transform: translateY(0); }
+    to   { transform: translateY(-420px); }
   }
   @keyframes star-rise-b {
-    from { background-position: 40px 0; }
-    to   { background-position: 40px -520px; }
+    from { transform: translateY(0); }
+    to   { transform: translateY(-520px); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -278,6 +287,7 @@
       transform 280ms var(--ease-out);
   }
   .star-cursor-head[data-mode="star"] .sc-star,
+  .star-cursor-head[data-mode="pointer"] .sc-pointer,
   .star-cursor-head[data-mode="arrow-left"] .sc-arrow-left,
   .star-cursor-head[data-mode="arrow-right"] .sc-arrow-right,
   .star-cursor-head[data-mode="view"] .sc-view {
@@ -285,7 +295,8 @@
     transform: translate(-50%, -50%) scale(1);
   }
 
-  .star-cursor-head .sc-star {
+  .star-cursor-head .sc-star,
+  .star-cursor-head .sc-pointer {
     filter:
       drop-shadow(0 0 6px rgba(210, 74, 142, 0.6))
       drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
@@ -334,6 +345,52 @@
 
   @media (prefers-reduced-motion: reduce) {
     .star-cursor-head[data-mode="star"] .sc-star path { animation: none; }
+  }
+
+  /* ---- Indices de navigation du hero (tactile) ------------------------ */
+  /* Sur pointeur fin, le curseur personnalisé montre déjà les flèches ;
+     sur tactile il n'existe pas, donc on affiche un léger voile dégradé sur
+     chaque bord avec une flèche presque transparente pour signaler le clic. */
+  .hero-edge-hint {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    pointer-events: none;
+    color: var(--color-beige-sable);
+  }
+
+  .hero-edge-hint svg {
+    width: 24px;
+    height: 24px;
+    opacity: 0.55;
+    filter: drop-shadow(0 1px 3px rgba(15, 17, 48, 0.5));
+  }
+
+  .hero-edge-hint-left {
+    justify-content: flex-start;
+    padding-left: 10px;
+    background: linear-gradient(
+      to right,
+      rgba(15, 17, 48, 0.4),
+      rgba(15, 17, 48, 0)
+    );
+  }
+
+  .hero-edge-hint-right {
+    justify-content: flex-end;
+    padding-right: 10px;
+    background: linear-gradient(
+      to left,
+      rgba(15, 17, 48, 0.4),
+      rgba(15, 17, 48, 0)
+    );
+  }
+
+  @media (pointer: coarse) {
+    .hero-edge-hint {
+      display: flex;
+    }
   }
 }
 

@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
  * Désactivé sur pointeur grossier (tactile) et si prefers-reduced-motion.
  */
 
-type CursorMode = "star" | "arrow-left" | "arrow-right" | "view";
+type CursorMode = "star" | "pointer" | "arrow-left" | "arrow-right" | "view";
 type TrailPoint = { x: number; y: number; t: number };
 
 // Durée de vie d'un point de traînée (ms) : la traînée s'efface en douceur.
@@ -30,10 +30,19 @@ const MAX_POINTS = 160;
 const STAR_PATH =
   "M12 0 L13.2 10.8 L24 12 L13.2 13.2 L12 24 L10.8 13.2 L0 12 L10.8 10.8 Z";
 
+// Éléments « cliquables » : au survol, l'étoile devient un doigt (mode pointer).
+// On couvre les balises interactives natives + l'utilitaire Tailwind
+// `cursor-pointer` (le `cursor: none` global masque la détection par style
+// calculé, d'où une détection structurelle).
+const CLICKABLE_SELECTOR =
+  'a[href], button, [role="button"], select, summary, label[for], ' +
+  'input[type="submit"], input[type="button"], input[type="checkbox"], ' +
+  'input[type="radio"], .cursor-pointer';
+
 /** Détermine la forme selon l'élément survolé et la position du pointeur. */
 function resolveMode(el: Element | null, clientX: number): CursorMode {
   const hero = el?.closest<HTMLElement>('[data-cursor="hero"]');
-  if (!hero) return "star";
+  if (!hero) return el?.closest(CLICKABLE_SELECTOR) ? "pointer" : "star";
   const r = hero.getBoundingClientRect();
   // La largeur des bords doit refléter celle des boutons prev/next du carrousel.
   const edge = Math.min(Math.max(r.width * 0.18, 64), 140);
@@ -95,7 +104,7 @@ export function StarCursor() {
         lastMode = next;
         setMode(next);
       }
-      if (lastMode === "star") {
+      if (lastMode === "star" || lastMode === "pointer") {
         // On récupère TOUS les points intermédiaires (sub-frame) pour une
         // trajectoire dense → trait lisse même sur un mouvement rapide.
         let evs: PointerEvent[] =
@@ -140,26 +149,29 @@ export function StarCursor() {
           if (fade <= 0) continue;
           const w = MAX_WIDTH * fade;
 
-          // Halo + bords magenta.
-          ctx.shadowColor = "rgba(210, 74, 142, 0.85)";
-          ctx.shadowBlur = 8 * fade + 3;
-          ctx.strokeStyle = `rgba(190, 60, 125, ${0.55 * fade})`;
-          ctx.lineWidth = w * 2.3;
+          // Glow néon recréé en empilant trois traits translucides plutôt qu'avec
+          // shadowBlur : un flou gaussien par segment (~150 segments/frame) est
+          // l'opération canvas la plus coûteuse et saturait le thread principal
+          // (traînée saccadée ET étoile en retard sur la souris).
           ctx.beginPath();
           ctx.moveTo(start.x, start.y);
           ctx.quadraticCurveTo(p1.x, p1.y, end.x, end.y);
+
+          // Halo externe diffus.
+          ctx.strokeStyle = `rgba(210, 74, 142, ${0.14 * fade})`;
+          ctx.lineWidth = w * 3.6;
+          ctx.stroke();
+
+          // Bords magenta.
+          ctx.strokeStyle = `rgba(190, 60, 125, ${0.5 * fade})`;
+          ctx.lineWidth = w * 2.1;
           ctx.stroke();
 
           // Cœur blanc.
-          ctx.shadowBlur = 0;
           ctx.strokeStyle = `rgba(255, 255, 255, ${0.92 * fade})`;
           ctx.lineWidth = Math.max(w * 0.85, 0.6);
-          ctx.beginPath();
-          ctx.moveTo(start.x, start.y);
-          ctx.quadraticCurveTo(p1.x, p1.y, end.x, end.y);
           ctx.stroke();
         }
-        ctx.shadowBlur = 0;
       }
 
       raf = requestAnimationFrame(loop);
@@ -200,6 +212,27 @@ export function StarCursor() {
       <div ref={headRef} className="star-cursor-head" data-mode={mode} style={{ opacity: 0 }}>
         <svg className="sc-shape sc-star" viewBox="0 0 24 24" width="28" height="28">
           <path d={STAR_PATH} fill="url(#sc-star-grad)" />
+        </svg>
+
+        {/* Main « clic » (index pointé) — tracé néon blanc + halo magenta,
+            dans le même langage que la traînée et l'étoile. */}
+        <svg
+          className="sc-shape sc-pointer"
+          viewBox="0 0 24 24"
+          width="18"
+          height="22"
+          preserveAspectRatio="none"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M22 14a8 8 0 0 1-8 8" />
+          <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" />
+          <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" />
+          <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" />
+          <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
         </svg>
 
         <div className="sc-shape sc-arrow sc-arrow-left">

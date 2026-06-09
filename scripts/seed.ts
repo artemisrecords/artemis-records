@@ -319,7 +319,7 @@ const SEED_DEMOS = [
     genre: "Indie folk",
     received: "2026-04-20",
     duration: "1 titre · 4 min",
-    status: "ecoute",
+    status: "nouveau",
     pitch:
       "Single enregistré en live dans une grange. Guitare acoustique, voix, une fiddle discrète. Cherche un label pour sortir un premier EP à l'automne.",
     links: [{ label: "Bandcamp · Single 'Brume'", href: "#" }],
@@ -371,7 +371,7 @@ const SEED_DEMOS = [
     genre: "Pop expérimentale",
     received: "2026-04-15",
     duration: "5 titres · 22 min",
-    status: "ecoute",
+    status: "nouveau",
     pitch:
       "Collectif de cinq musiciennes. Projet polyphonique, textures étranges. Intéressant, à écouter au calme.",
     links: [

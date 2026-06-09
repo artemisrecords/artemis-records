@@ -29,6 +29,13 @@
       "when": 1780446553835,
       "tag": "0003_bumpy_outlaw_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780929836137,
+      "tag": "0004_abandoned_loki",
+      "breakpoints": true
     }
   ]
 }
