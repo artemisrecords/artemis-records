@@ -25,3 +25,20 @@ export async function requireRole(...roles: Role[]) {
   }
   return { user: session.user, role };
 }
+
+/**
+ * Garde d'édition d'une fiche artiste : admin/superadmin passent toujours,
+ * un compte artiste ne passe que sur SA fiche (session.user.artistId).
+ */
+export async function requireArtistAccess(artistId: string) {
+  const session = await getSession();
+  const role = session?.user.role as Role | undefined;
+  if (!session || !role) throw new Error("Accès refusé.");
+  if (role === "superadmin" || role === "admin") {
+    return { user: session.user, role };
+  }
+  if (role === "artiste" && session.user.artistId === artistId) {
+    return { user: session.user, role };
+  }
+  throw new Error("Accès refusé.");
+}
