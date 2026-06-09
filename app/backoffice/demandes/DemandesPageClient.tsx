@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   AdminBtn,
   AdminEyebrow,
   PageHeader,
   Pill,
 } from "@/components/admin/AdminPrimitives";
+import { SelectMenu } from "@/components/admin/SelectMenu";
 import {
   DEMAND_CATEGORY_LABEL,
   DEMAND_STATUS_LABEL,
@@ -14,6 +15,9 @@ import {
   type DemandCategory,
 } from "@/lib/adminData";
 import { formatDate } from "@/lib/data";
+import { updateDemandStatus, updateDemandAssignee } from "./actions";
+
+export type Account = { id: string; name: string };
 
 type CatFilter = "tous" | DemandCategory;
 const CAT_FILTERS: { k: CatFilter; label: string }[] = [
@@ -28,7 +32,19 @@ const CAT_FILTERS: { k: CatFilter; label: string }[] = [
 type StatusFilter = "tous" | "ouverte" | "en_cours" | "close";
 type StatusKey = Exclude<StatusFilter, "tous">;
 
-export function DemandesPageClient({ demands }: { demands: Demand[] }) {
+const STATUS_OPTIONS: { value: StatusKey; label: string }[] = [
+  { value: "ouverte", label: "Ouverte" },
+  { value: "en_cours", label: "En cours" },
+  { value: "close", label: "Close" },
+];
+
+export function DemandesPageClient({
+  demands,
+  accounts,
+}: {
+  demands: Demand[];
+  accounts: Account[];
+}) {
   const [cat, setCat] = useState<CatFilter>("tous");
   const [status, setStatus] = useState<StatusFilter>("tous");
   const [selectedId, setSelectedId] = useState<string>(demands[0]?.id ?? "");
@@ -50,12 +66,6 @@ export function DemandesPageClient({ demands }: { demands: Demand[] }) {
         eyebrow={`Demandes entrantes · ${demands.length} au total`}
         title="Demandes"
         italic="Presse, booking, partenariats, synchros : tout ce qui arrive par le formulaire contact, rangé pour mieux répondre."
-        actions={
-          <>
-            <AdminBtn kind="secondary">Marquer tout lu</AdminBtn>
-            <AdminBtn kind="accent">Nouvelle réponse type</AdminBtn>
-          </>
-        }
       />
 
       <div className="flex flex-col gap-3">
@@ -163,38 +173,61 @@ export function DemandesPageClient({ demands }: { demands: Demand[] }) {
           </ul>
         </div>
 
-        {selected && <DemandDetail demand={selected} />}
+        {selected && (
+          <DemandDetail key={selected.id} demand={selected} accounts={accounts} />
+        )}
       </div>
     </div>
   );
 }
 
-function DemandDetail({ demand }: { demand: Demand }) {
+function DemandDetail({
+  demand,
+  accounts,
+}: {
+  demand: Demand;
+  accounts: Account[];
+}) {
+  const [status, setStatus] = useState<string>(demand.status);
+  const [assignedTo, setAssignedTo] = useState<string>(demand.assignedTo ?? "");
+  const [, startTransition] = useTransition();
+
+  const assigneeName =
+    accounts.find((a) => a.id === assignedTo)?.name ?? (assignedTo || null);
+
+  const changeStatus = (v: string) => {
+    setStatus(v);
+    startTransition(async () => {
+      await updateDemandStatus(demand.id, v);
+    });
+  };
+  const changeAssignee = (v: string) => {
+    setAssignedTo(v);
+    startTransition(async () => {
+      await updateDemandAssignee(demand.id, v);
+    });
+  };
+
+  const tone =
+    status === "ouverte" ? "magenta" : status === "en_cours" ? "info" : "mute";
+
   return (
     <aside className="bg-paper-soft border border-ink/10 rounded-[2px] sticky top-[88px]">
       <header className="p-6 border-b border-ink/10">
         <div className="flex items-center justify-between">
-          <AdminEyebrow>{demand.id} · {formatDate(demand.receivedAt)}</AdminEyebrow>
-          <Pill
-            tone={
-              demand.status === "ouverte"
-                ? "magenta"
-                : demand.status === "en_cours"
-                ? "info"
-                : "mute"
-            }
-          >
-            {DEMAND_STATUS_LABEL[demand.status as StatusKey]}
-          </Pill>
+          <AdminEyebrow>
+            {demand.id} · {formatDate(demand.receivedAt)}
+          </AdminEyebrow>
+          <Pill tone={tone}>{DEMAND_STATUS_LABEL[status as StatusKey]}</Pill>
         </div>
         <h2 className="font-display uppercase tracking-display text-[clamp(1.35rem,2.4vw,1.85rem)] mt-2 font-normal leading-[1.15]">
           {demand.subject}
         </h2>
         <div className="flex items-center gap-2 mt-3">
-          <Pill tone="neutral">{DEMAND_CATEGORY_LABEL[demand.category as DemandCategory]}</Pill>
-          {demand.assignedTo && (
-            <Pill tone="info">Suivi · {demand.assignedTo}</Pill>
-          )}
+          <Pill tone="neutral">
+            {DEMAND_CATEGORY_LABEL[demand.category as DemandCategory]}
+          </Pill>
+          {assigneeName && <Pill tone="info">Suivi · {assigneeName}</Pill>}
         </div>
       </header>
 
@@ -204,9 +237,7 @@ function DemandDetail({ demand }: { demand: Demand }) {
             <AdminEyebrow className="mb-1">Expéditeur</AdminEyebrow>
             <div className="font-serif text-[14px] text-ink">{demand.name}</div>
             {demand.org && (
-              <div className="italic text-[12px] text-ink-muted">
-                {demand.org}
-              </div>
+              <div className="italic text-[12px] text-ink-muted">{demand.org}</div>
             )}
           </div>
           <div>
@@ -234,32 +265,30 @@ function DemandDetail({ demand }: { demand: Demand }) {
           </div>
         </div>
 
-        <div>
-          <AdminEyebrow className="mb-2">Réponse</AdminEyebrow>
-          <textarea
-            rows={5}
-            placeholder="Bonjour, merci de nous avoir écrit… N'hésitez pas à prendre le temps d'une vraie réponse."
-            className="w-full bg-paper border border-ink/15 px-3.5 py-2.5 font-serif text-[14px] text-ink outline-none focus:border-magenta transition-colors rounded-[2px] resize-y leading-[1.55]"
-          />
-          <div className="flex items-center gap-2 text-[11px] tracking-eyebrow uppercase font-bold mt-2">
-            <span className="text-ink-subtle">Modèle</span>
-            {["Accusé de réception", "Réponse presse", "Refus poli"].map((t) => (
-              <button
-                key={t}
-                type="button"
-                className="px-2.5 py-1.5 text-ink-muted hover:text-magenta cursor-pointer"
-              >
-                {t}
-              </button>
-            ))}
+        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-ink/10">
+          <div>
+            <AdminEyebrow className="mb-1">Statut</AdminEyebrow>
+            <SelectMenu value={status} onChange={changeStatus} options={STATUS_OPTIONS} />
+          </div>
+          <div>
+            <AdminEyebrow className="mb-1">Assigné à</AdminEyebrow>
+            <SelectMenu
+              value={assignedTo}
+              onChange={changeAssignee}
+              placeholder="Personne"
+              options={[
+                { value: "", label: "Personne" },
+                ...accounts.map((a) => ({ value: a.id, label: a.name })),
+              ]}
+            />
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-ink/10">
-          <AdminBtn kind="primary">Envoyer la réponse</AdminBtn>
-          <AdminBtn kind="secondary">Assigner</AdminBtn>
-          <AdminBtn kind="ghost">Archiver</AdminBtn>
-        </div>
+        <a
+          href={`mailto:${demand.email}?subject=${encodeURIComponent(`Re: ${demand.subject}`)}`}
+        >
+          <AdminBtn kind="primary">Répondre par email ↗</AdminBtn>
+        </a>
       </div>
     </aside>
   );
