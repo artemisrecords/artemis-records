@@ -164,7 +164,7 @@ export const Topbar = ({
                         className="block px-4 py-3 hover:bg-paper-soft transition-colors"
                       >
                         <span className="text-[9px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-                          {n.kind === "demo" ? "Démo" : "Demande"}
+                          {n.kind === "demo" ? "Démo" : n.kind === "contrat" ? "Contrat" : "Demande"}
                         </span>
                         <span className="block font-serif text-[13px] text-ink truncate mt-0.5">
                           {n.label}

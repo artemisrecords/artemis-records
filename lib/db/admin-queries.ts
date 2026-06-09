@@ -4,6 +4,7 @@ import { db } from "./index";
 import { demos, demands, subscribers } from "./schema";
 import type { DemoRow, DemandRow, SubscriberRow } from "./schema";
 import { getArtists, getAllNews } from "./queries";
+import { listContracts } from "./contract-queries";
 
 export async function getDemos(): Promise<DemoRow[]> {
   return db.select().from(demos).orderBy(desc(demos.receivedAt));
@@ -29,18 +30,20 @@ export type LabelStats = {
   demands: { total: number; ouverte: number; en_cours: number; close: number };
   subscribers: { total: number; confirmed: number };
   shows: { total: number; upcoming: number };
+  contracts: { total: number; active: number };
   events: StatEvent[];
 };
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 export async function getLabelStats(): Promise<LabelStats> {
-  const [artists, news, demoRows, demandRows, subs] = await Promise.all([
+  const [artists, news, demoRows, demandRows, subs, contractRows] = await Promise.all([
     getArtists(),
     getAllNews(),
     getDemos(),
     getDemands(),
     getSubscribers(),
+    listContracts(),
   ]);
 
   const today = iso(new Date());
@@ -82,20 +85,31 @@ export async function getLabelStats(): Promise<LabelStats> {
       total: shows.length,
       upcoming: shows.filter((s) => s.date >= today).length,
     },
+    contracts: {
+      total: contractRows.length,
+      active: contractRows.filter((c) => c.status === "en_cours").length,
+    },
     events,
   };
 }
 
 export type NotifItem = {
   id: string;
-  kind: "demo" | "demande";
+  kind: "demo" | "demande" | "contrat";
   label: string;
   href: string;
 };
 
-/** Éléments nécessitant une action : démos « nouveau » + demandes « ouverte ». */
+/**
+ * Éléments nécessitant une action : démos « nouveau », demandes « ouverte »,
+ * contrats « à signer » + contrats arrivant à échéance dans les 6 mois.
+ */
 export async function getPendingNotifications(): Promise<NotifItem[]> {
-  const [demoRows, demandRows] = await Promise.all([getDemos(), getDemands()]);
+  const [demoRows, demandRows, contractRows] = await Promise.all([
+    getDemos(),
+    getDemands(),
+    listContracts(),
+  ]);
   const items: NotifItem[] = [];
   for (const d of demoRows.filter((x) => x.status === "nouveau")) {
     items.push({
@@ -111,6 +125,26 @@ export async function getPendingNotifications(): Promise<NotifItem[]> {
       kind: "demande",
       label: `Demande ouverte · ${d.subject}`,
       href: "/backoffice/demandes",
+    });
+  }
+  const today = iso(new Date());
+  const in6Months = iso(new Date(Date.now() + 180 * 24 * 60 * 60 * 1000));
+  for (const c of contractRows.filter((x) => x.status === "a_signer")) {
+    items.push({
+      id: `contrat-signer-${c.id}`,
+      kind: "contrat",
+      label: `Contrat à signer · ${c.title}`,
+      href: `/backoffice/contrats/${c.id}`,
+    });
+  }
+  for (const c of contractRows.filter(
+    (x) => x.status !== "archive" && x.status !== "a_signer" && x.endDate >= today && x.endDate <= in6Months,
+  )) {
+    items.push({
+      id: `contrat-echeance-${c.id}`,
+      kind: "contrat",
+      label: `Échéance proche · ${c.title}`,
+      href: `/backoffice/contrats/${c.id}`,
     });
   }
   return items;
