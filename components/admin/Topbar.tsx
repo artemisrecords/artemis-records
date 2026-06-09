@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { NotifItem } from "@/lib/db/admin-queries";
 
 const CRUMBS: Record<string, string> = {
   backoffice: "Backoffice",
@@ -20,9 +22,11 @@ const CRUMBS: Record<string, string> = {
 export const Topbar = ({
   onOpenPalette,
   onOpenMobileMenu,
+  notifications = [],
 }: {
   onOpenPalette?: () => void;
   onOpenMobileMenu?: () => void;
+  notifications?: NotifItem[];
 } = {}) => {
   const pathname = usePathname() || "";
   const segments = pathname.split("/").filter(Boolean);
@@ -30,6 +34,28 @@ export const Topbar = ({
     label: CRUMBS[s] || decodeURIComponent(s),
     href: "/" + segments.slice(0, i + 1).join("/"),
   }));
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const notifCount = notifications.length;
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNotifOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [notifOpen]);
 
   return (
     <header className="h-[64px] border-b border-ink/10 bg-paper/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-[clamp(16px,3vw,40px)] gap-3 whitespace-nowrap flex-nowrap">
@@ -97,14 +123,60 @@ export const Topbar = ({
         >
           ⌕
         </button>
-        <button
-          type="button"
-          className="relative w-9 h-9 rounded-full border border-ink/15 bg-paper-soft flex items-center justify-center text-ink hover:border-ink/40 cursor-pointer"
-          aria-label="Notifications"
-        >
-          <span className="text-[14px]">✦</span>
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-magenta border border-paper" />
-        </button>
+        <div ref={notifRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setNotifOpen((o) => !o)}
+            className="relative w-9 h-9 rounded-full border border-ink/15 bg-paper-soft flex items-center justify-center text-ink hover:border-ink/40 cursor-pointer"
+            aria-label={`Notifications${notifCount ? ` (${notifCount})` : ""}`}
+            aria-haspopup="true"
+            aria-expanded={notifOpen}
+          >
+            <span className="text-[14px]">✦</span>
+            {notifCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-magenta border border-paper text-beige-sable text-[9px] font-bold flex items-center justify-center">
+                {notifCount > 9 ? "9+" : notifCount}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 mt-2 w-[300px] z-50 bg-paper border border-ink/15 rounded-[2px] shadow-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-ink/10 flex items-center justify-between">
+                <span className="text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
+                  À traiter
+                </span>
+                <span className="text-[10px] tracking-eyebrow uppercase font-bold text-magenta">
+                  {notifCount}
+                </span>
+              </div>
+              {notifCount === 0 ? (
+                <div className="px-4 py-6 text-center font-serif italic text-[13px] text-ink-muted">
+                  Rien à traiter. Tout est à jour.
+                </div>
+              ) : (
+                <ul className="max-h-[320px] overflow-auto">
+                  {notifications.map((n) => (
+                    <li key={n.id} className="border-t border-ink/8 first:border-t-0">
+                      <Link
+                        href={n.href}
+                        onClick={() => setNotifOpen(false)}
+                        className="block px-4 py-3 hover:bg-paper-soft transition-colors"
+                      >
+                        <span className="text-[9px] tracking-eyebrow uppercase font-bold text-ink-subtle">
+                          {n.kind === "demo" ? "Démo" : "Demande"}
+                        </span>
+                        <span className="block font-serif text-[13px] text-ink truncate mt-0.5">
+                          {n.label}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
         <Link
           href="/"
           title="Voir le site public"
