@@ -2,7 +2,9 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink, admin as adminPlugin } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
+import { eq } from "drizzle-orm";
 import { authDb } from "@/lib/db/auth-db";
+import { user } from "@/lib/db/schema";
 import { sendEmail } from "@/lib/email";
 import { ac, superadmin, admin, artiste } from "@/lib/permissions";
 
@@ -53,6 +55,17 @@ export const auth = betterAuth({
       disableSignUp: true,
       expiresIn: 60 * 15,
       sendMagicLink: async ({ email, url }) => {
+        // `disableSignUp` ne bloque qu'au CLIC du lien (new_user_signup_disabled),
+        // pas à l'envoi : sans ce check, un inconnu recevrait quand même un email.
+        // Invite-only → compte inexistant = aucun envoi, réponse neutre (pas de
+        // fuite d'information sur l'existence du compte).
+        const [existing] = await authDb
+          .select({ id: user.id })
+          .from(user)
+          .where(eq(user.email, email.toLowerCase()))
+          .limit(1);
+        if (!existing) return;
+
         await sendEmail({
           to: email,
           subject: "Votre lien de connexion · ARTémis Records",
