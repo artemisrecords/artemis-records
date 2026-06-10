@@ -102,7 +102,7 @@ Actions sensibles revérifient le rôle côté serveur (defense in depth).
 | `DATABASE_URL` | existante (Pool WS réutilise la même URL) |
 | `BETTER_AUTH_SECRET` | secret de signature (généré) |
 | `BETTER_AUTH_URL` | base URL (http://localhost:3000 en dev, domaine en prod) |
-| `EMAIL_FROM` | expéditeur (ex. `ARTémis Records <no-reply@artemis-records.fr>`) |
+| `EMAIL_FROM` | expéditeur (ex. `ARTémis Records <no-reply@artemisrecordslabel.com>`) |
 | `SMTP_HOST` / `SMTP_PORT` | cible Nodemailer (dev: `localhost`/`1025` ; preview: sandbox) |
 | `SMTP_USER` / `SMTP_PASS` | auth SMTP (vide en dev/Mailpit ; renseigné en preview) |
 | `RESEND_API_KEY` | prod seulement (préparé, pas encore utilisé) |

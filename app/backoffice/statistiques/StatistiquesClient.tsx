@@ -24,7 +24,6 @@ const KIND_LABEL: Record<string, string> = {
   demo: "Démos",
   demande: "Demandes",
   news: "Actualités",
-  abonne: "Abonnés",
 };
 
 export function StatistiquesClient({ stats }: { stats: LabelStats }) {
@@ -43,7 +42,7 @@ export function StatistiquesClient({ stats }: { stats: LabelStats }) {
   );
 
   const byKind = useMemo(() => {
-    const counts: Record<string, number> = { demo: 0, demande: 0, news: 0, abonne: 0 };
+    const counts: Record<string, number> = { demo: 0, demande: 0, news: 0 };
     for (const e of inRange) counts[e.kind] = (counts[e.kind] ?? 0) + 1;
     return counts;
   }, [inRange]);
@@ -57,7 +56,7 @@ export function StatistiquesClient({ stats }: { stats: LabelStats }) {
         chapter="08"
         eyebrow="Activité du label · données internes"
         title="Statistiques"
-        italic="Les chiffres réels du label : roster, journal, démos, demandes, agenda, abonnés. (Les statistiques de streaming nécessiteraient une connexion aux plateformes.)"
+        italic="Les chiffres réels du label : roster, journal, démos, demandes, agenda. (Les statistiques de streaming nécessiteraient une connexion aux plateformes.)"
       />
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -117,11 +116,10 @@ export function StatistiquesClient({ stats }: { stats: LabelStats }) {
               { label: "DÉMOS", value: byKind.demo },
               { label: "DEM.", value: byKind.demande, accent: true },
               { label: "NEWS", value: byKind.news },
-              { label: "ABO.", value: byKind.abonne },
             ]}
           />
           <div className="grid grid-cols-2 gap-3 mt-5">
-            {(["demo", "demande", "news", "abonne"] as const).map((k) => (
+            {(["demo", "demande", "news"] as const).map((k) => (
               <div key={k} className="flex items-baseline justify-between border-t border-ink/8 pt-2">
                 <span className="text-[11px] tracking-eyebrow uppercase font-bold text-ink-subtle">
                   {KIND_LABEL[k]}
@@ -173,18 +171,13 @@ export function StatistiquesClient({ stats }: { stats: LabelStats }) {
         </div>
       </section>
 
-      <RuledDivider label="Contenu, audience & juridique" />
+      <RuledDivider label="Contenu & juridique" />
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <KPI
           label="Actualités publiées"
           value={stats.news.published}
           hint={`${stats.news.total} articles au total`}
-        />
-        <KPI
-          label="Abonnés newsletter"
-          value={stats.subscribers.total}
-          hint={`${stats.subscribers.confirmed} confirmés`}
         />
         <KPI
           label="Contrats en vigueur"

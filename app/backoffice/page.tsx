@@ -14,19 +14,87 @@ import { BarChart, Donut, Sparkline } from "@/components/admin/Charts";
 import { BowMark } from "@/components/Primitives";
 import { getArtists, getNews } from "@/lib/db/queries";
 import { formatDate } from "@/lib/data";
-import { getDemands, getDemos, getSubscribers } from "@/lib/db/admin-queries";
+import { getDemands, getDemos } from "@/lib/db/admin-queries";
 import { DEMAND_CATEGORY_LABEL, DEMO_STATUS_LABEL } from "@/lib/adminData";
 
+// Numéro de semaine ISO 8601 (1–53), pour les libellés de barres et l'eyebrow.
+function isoWeek(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
+// Lundi 00:00 de la semaine contenant `ref`.
+function startOfWeek(ref: Date): Date {
+  const d = new Date(ref);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+
+// Répartit des dates en `weeks` cumuls hebdomadaires (semaines lundi→dimanche),
+// la dernière entrée correspondant à la semaine en cours. Hors fenêtre = ignoré.
+function weeklyBuckets(
+  dates: Date[],
+  weeks: number,
+): { label: string; value: number }[] {
+  const monday = startOfWeek(new Date());
+  const buckets = Array.from({ length: weeks }, (_, i) => {
+    const start = new Date(monday);
+    start.setDate(monday.getDate() - (weeks - 1 - i) * 7);
+    return {
+      startMs: start.getTime(),
+      label: `S${String(isoWeek(start)).padStart(2, "0")}`,
+      value: 0,
+    };
+  });
+  for (const date of dates) {
+    const t = date.getTime();
+    for (let b = weeks - 1; b >= 0; b--) {
+      if (t >= buckets[b].startMs) {
+        buckets[b].value += 1;
+        break;
+      }
+    }
+  }
+  return buckets.map(({ label, value }) => ({ label, value }));
+}
+
+// Total cumulé d'entrées existant à la fin de chacune des `weeks` dernières semaines
+// (courbe de croissance : roster, abonnés).
+function weeklyCumulative(dates: Date[], weeks: number): number[] {
+  const monday = startOfWeek(new Date());
+  return Array.from({ length: weeks }, (_, i) => {
+    const nextWeek = new Date(monday);
+    nextWeek.setDate(monday.getDate() - (weeks - 1 - i) * 7 + 7);
+    const cutoff = nextWeek.getTime();
+    return dates.filter((d) => d.getTime() < cutoff).length;
+  });
+}
+
+// Nombre d'entrées datées au cours des `days` derniers jours.
+function countSince(dates: Date[], days: number): number {
+  const cutoff = Date.now() - days * 86400000;
+  return dates.filter((d) => d.getTime() >= cutoff).length;
+}
+
+// Nombre d'entrées datées dans la fenêtre [days*2, days[ jours (période précédente).
+function countPrevious(dates: Date[], days: number): number {
+  const end = Date.now() - days * 86400000;
+  const start = Date.now() - days * 2 * 86400000;
+  return dates.filter((d) => d.getTime() >= start && d.getTime() < end).length;
+}
+
 export default async function DashboardPage() {
-  const [session, artists, news, demos, demands, subscribers] =
-    await Promise.all([
-      auth.api.getSession({ headers: await headers() }),
-      getArtists(),
-      getNews(),
-      getDemos(),
-      getDemands(),
-      getSubscribers(),
-    ]);
+  const [session, artists, news, demos, demands] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    getArtists(),
+    getNews(),
+    getDemos(),
+    getDemands(),
+  ]);
   // Le layout garantit déjà une session ; on garde une retombée propre au cas où.
   // On lit le prénom tel quel (pas de découpage : gère les prénoms composés).
   const firstName =
@@ -34,8 +102,38 @@ export default async function DashboardPage() {
     session?.user.name?.trim() ||
     session?.user.email.split("@")[0] ||
     "";
+  const now = new Date();
+  const year = now.getFullYear();
+
+  // Dates réelles, normalisées en Date (les colonnes timestamp arrivent en Date).
+  const demoDates = demos.map((d) => new Date(d.receivedAt));
+  const demandDates = demands.map((d) => new Date(d.receivedAt));
+  const artistDates = artists.map((a) => new Date(a.createdAt));
+
   const newDemos = demos.filter((d) => d.status === "nouveau");
   const openDemands = demands.filter((d) => d.status === "ouverte");
+  const demandsEnCours = demands.filter((d) => d.status === "en_cours").length;
+  const demandsCloses = demands.filter((d) => d.status === "close").length;
+  const demosRetenu = demos.filter((d) => d.status === "retenu").length;
+  const demosRefuse = demos.filter((d) => d.status === "refuse").length;
+
+  // Courbe d'activité (10 dernières semaines, semaine en cours accentuée).
+  const demoSeries = weeklyBuckets(demoDates, 10).map((b) => ({
+    ...b,
+    accent: true,
+  }));
+  const demandSeries = weeklyBuckets(demandDates, 10);
+
+  // KPI : valeurs sur 7 j vs période précédente, sparklines réelles.
+  const demos7j = countSince(demoDates, 7);
+  const demos7jPrev = countPrevious(demoDates, 7);
+  const demosDelta = demos7j - demos7jPrev;
+  const demands7j = countSince(demandDates, 7);
+  const artists90j = countSince(artistDates, 90);
+
+  const demoSpark = demoSeries.map((b) => b.value);
+  const demandSpark = demandSeries.map((b) => b.value);
+  const rosterSpark = weeklyCumulative(artistDates, 10);
 
   return (
     <div className="flex flex-col gap-10">
@@ -48,7 +146,7 @@ export default async function DashboardPage() {
         </span>
         <PageHeader
           chapter="01"
-          eyebrow="Pilotage · Semaine 17 · 2026"
+          eyebrow={`Pilotage · Semaine ${isoWeek(now)} · ${year}`}
           title={firstName ? `Bonsoir, ${firstName}.` : "Bonsoir."}
           italic="Voici ce qui attend le label cette semaine : les démos qui dorment encore, les demandes à ne pas laisser refroidir, les dates à tenir."
           actions={
@@ -60,22 +158,26 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <KPI
           label="Démos reçues · 7j"
-          value={demos.length}
-          delta={`+${newDemos.length} cette semaine`}
-          hint={`${newDemos.length} non écoutées`}
-          spark={<Sparkline data={[2, 3, 1, 4, 2, 5, 3, 6, 4, 7]} />}
+          value={demos7j}
+          delta={
+            demos7j || demos7jPrev
+              ? `${demosDelta >= 0 ? "+" : ""}${demosDelta} vs 7j préc.`
+              : undefined
+          }
+          hint={`${newDemos.length} non écoutées · ${demos.length} au total`}
+          spark={<Sparkline data={demoSpark} />}
         />
         <KPI
           label="Demandes ouvertes"
           value={openDemands.length}
-          delta="2 urgentes"
-          hint="presse · booking · sync"
+          delta={demands7j ? `+${demands7j} cette semaine` : undefined}
+          hint={`${demandsEnCours} en cours · ${demandsCloses} closes`}
           spark={
             <Sparkline
-              data={[4, 3, 5, 4, 6, 5, 7, 5, 4, 6]}
+              data={demandSpark}
               stroke="var(--color-bleu-nuit-700)"
               fill="rgba(28,31,74,0.1)"
             />
@@ -84,25 +186,13 @@ export default async function DashboardPage() {
         <KPI
           label="Artistes au roster"
           value={artists.length}
+          delta={artists90j ? `+${artists90j} ce trimestre` : undefined}
           hint={`${artists.filter((a) => a.published).length} publiés · ${artists.filter((a) => !a.published).length} en attente`}
           spark={
             <Sparkline
-              data={[1, 1, 1, 2, 2, 2, 2, 2, 2, 2]}
+              data={rosterSpark}
               stroke="var(--color-vert-foret-700)"
               fill="rgba(35,52,15,0.1)"
-            />
-          }
-        />
-        <KPI
-          label="Abonnés newsletter"
-          value={`${subscribers.length + 148}`}
-          delta="+12 ce mois-ci"
-          hint="ouverture moyenne 42%"
-          spark={
-            <Sparkline
-              data={[120, 128, 134, 139, 142, 148, 150, 152, 152, 152]}
-              stroke="var(--color-taupe-700)"
-              fill="rgba(141,123,104,0.14)"
             />
           }
         />
@@ -128,34 +218,9 @@ export default async function DashboardPage() {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-8">
+            <BarChart data={demoSeries} ariaLabel="Démos reçues par semaine" />
             <BarChart
-              data={[
-                { label: "S08", value: 3 },
-                { label: "S09", value: 5 },
-                { label: "S10", value: 4 },
-                { label: "S11", value: 6 },
-                { label: "S12", value: 4 },
-                { label: "S13", value: 8 },
-                { label: "S14", value: 5 },
-                { label: "S15", value: 9 },
-                { label: "S16", value: 6 },
-                { label: "S17", value: 7, accent: true },
-              ]}
-              ariaLabel="Démos reçues par semaine"
-            />
-            <BarChart
-              data={[
-                { label: "S08", value: 2 },
-                { label: "S09", value: 4 },
-                { label: "S10", value: 3 },
-                { label: "S11", value: 5 },
-                { label: "S12", value: 6 },
-                { label: "S13", value: 4 },
-                { label: "S14", value: 7 },
-                { label: "S15", value: 5 },
-                { label: "S16", value: 8 },
-                { label: "S17", value: 6 },
-              ]}
+              data={demandSeries}
               ariaLabel="Demandes entrantes par semaine"
             />
           </div>
@@ -165,21 +230,24 @@ export default async function DashboardPage() {
           <AdminEyebrow className="mb-4">Répartition des démos</AdminEyebrow>
           <Donut
             segments={[
-              { label: "Nouveaux", value: 3, color: "var(--color-magenta)" },
               {
-                label: "À écouter",
-                value: 2,
-                color: "var(--color-bleu-nuit-700)",
+                label: "Nouveaux",
+                value: newDemos.length,
+                color: "var(--color-magenta)",
               },
               {
                 label: "Retenus",
-                value: 1,
+                value: demosRetenu,
                 color: "var(--color-vert-foret-700)",
               },
-              { label: "Refusés", value: 1, color: "var(--color-taupe-700)" },
+              {
+                label: "Refusés",
+                value: demosRefuse,
+                color: "var(--color-taupe-700)",
+              },
             ]}
             centerLabel={`${demos.length}`}
-            centerHint="Ce mois"
+            centerHint="Total"
           />
         </div>
       </section>
