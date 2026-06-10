@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export type SendEmailArgs = {
   to: string;
@@ -14,21 +15,26 @@ const FROM =
  * Transport email choisi par environnement (voir
  * docs/superpowers/specs/2026-05-22-auth-better-auth-design.md §6.1) :
  * - dev    : Nodemailer SMTP → Mailpit (localhost:1025, webmail :8025)
- * - preview: Nodemailer SMTP → sandbox (Mailtrap/Ethereal) via SMTP_*
- * - prod   : Resend (préparé, pas encore implémenté)
+ * - preview: Nodemailer SMTP → Resend SMTP via SMTP_* (domaine vérifié requis)
+ * - prod   : Resend via API (RESEND_API_KEY)
  */
+async function sendViaResend({ to, subject, html, text }: SendEmailArgs) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY manquante en production.");
+  const resend = new Resend(key);
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject,
+    html,
+    text,
+  });
+  if (error) throw new Error(`Resend: ${error.message}`);
+}
+
 function getTransport() {
-  const env = process.env.VERCEL_ENV ?? "development";
-
-  if (env === "production") {
-    // TODO(auth): brancher Resend via RESEND_API_KEY.
-    throw new Error(
-      "Transport email production (Resend) pas encore implémenté. Voir lib/email.ts.",
-    );
-  }
-
   // dev + preview : un seul transport SMTP Nodemailer, piloté par SMTP_*.
-  // dev → défauts Mailpit ; preview → SMTP_* renseignés vers un sandbox.
+  // dev → défauts Mailpit ; preview → SMTP_* renseignés vers Resend SMTP.
   const host = process.env.SMTP_HOST ?? "localhost";
   const port = Number(process.env.SMTP_PORT ?? 1025);
   const user = process.env.SMTP_USER;
@@ -52,18 +58,22 @@ function getTransport() {
 export async function sendEmail({ to, subject, html, text }: SendEmailArgs) {
   const env = process.env.VERCEL_ENV ?? "development";
 
-  // Dev/preview : on tente le SMTP configuré (Mailpit en dev, sandbox en
+  // Production : Resend via API. Toute erreur remonte — jamais de lien de
+  // connexion dans les logs de prod.
+  if (env === "production") {
+    await sendViaResend({ to, subject, html, text });
+    return;
+  }
+
+  // Dev/preview : on tente le SMTP configuré (Mailpit en dev, Resend SMTP en
   // preview). Si AUCUN serveur SMTP n'est joignable — typiquement un preview
   // sans SMTP_* où l'on retombe sur localhost:1025 (ECONNREFUSED) — on ne bloque
   // pas la connexion : on journalise le contenu (lien magique inclus) dans les
   // runtime logs Vercel, qui servent alors de « boîte de réception » de secours.
-  // En production, `getTransport()` lève déjà (Resend pas branché) : on laisse
-  // remonter, jamais de lien de connexion dans les logs de prod.
   try {
     const transport = getTransport();
     await transport.sendMail({ from: FROM, to, subject, html, text });
   } catch (err) {
-    if (env === "production") throw err;
     console.warn(
       `[email] Envoi SMTP impossible (${(err as Error).message}). ` +
         `Contenu destiné à ${to} — « ${subject} » :\n${text ?? html}`,
