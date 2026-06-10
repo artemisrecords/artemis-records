@@ -200,9 +200,10 @@ export async function deleteUserAccount(id: string) {
 
 /**
  * Change le rôle d'un compte (jamais le sien — garantit qu'il reste toujours
- * au moins un superadmin). Lie la fiche artiste pour le rôle artiste, la
- * délie sinon, puis révoque les sessions du compte : la personne se
- * reconnecte par magic link avec ses nouveaux droits.
+ * au moins un superadmin). Lie la fiche artiste pour le rôle artiste (un
+ * compte déjà artiste peut changer de fiche liée), la délie sinon, puis
+ * révoque les sessions du compte : la personne se reconnecte par magic link
+ * avec ses nouveaux droits.
  */
 export async function changeUserRole(args: {
   callerId: string;
@@ -214,16 +215,22 @@ export async function changeUserRole(args: {
     throw new Error("Vous ne pouvez pas changer votre propre rôle.");
   }
   const [target] = await db
-    .select({ id: user.id, role: user.role, name: user.name })
+    .select({ id: user.id, role: user.role, name: user.name, artistId: user.artistId })
     .from(user)
     .where(eq(user.id, args.userId))
     .limit(1);
   if (!target) throw new Error("Compte introuvable.");
-  if (target.role === args.role) throw new Error("Ce compte a déjà ce rôle.");
+  const sameRole = target.role === args.role;
+  if (sameRole && args.role !== "artiste") {
+    throw new Error("Ce compte a déjà ce rôle.");
+  }
 
   let artistId: string | null = null;
   if (args.role === "artiste") {
     if (!args.artistId) throw new Error("Sélectionnez la fiche artiste à lier.");
+    if (sameRole && target.artistId === args.artistId) {
+      throw new Error("Ce compte est déjà lié à cette fiche.");
+    }
     const [artist] = await db
       .select({ id: artists.id })
       .from(artists)

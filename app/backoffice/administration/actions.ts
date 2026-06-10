@@ -70,7 +70,7 @@ export async function changeRoleAction(
     revalidatePath("/backoffice/administration");
     return {
       ok: true,
-      message: `Rôle de ${res.name} mis à jour. Une reconnexion sera nécessaire de son côté.`,
+      message: `Compte de ${res.name} mis à jour. Une reconnexion sera nécessaire de son côté.`,
     };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Une erreur est survenue." };

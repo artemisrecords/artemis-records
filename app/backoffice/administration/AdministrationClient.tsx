@@ -48,15 +48,15 @@ function fmtDate(d: Date | string) {
 
 /**
  * Sélecteur de rôle inline (superadmin uniquement, jamais sur soi-même).
- * Passer en artiste exige de lier une fiche libre ; le changement révoque
- * les sessions du compte ciblé.
+ * Passer en artiste exige de lier une fiche libre ; un compte déjà artiste
+ * peut changer de fiche liée. Le changement révoque les sessions du compte.
  */
 function RoleEditor({
   u,
-  freeArtists,
+  artists,
 }: {
   u: UserRow;
-  freeArtists: ArtistOpt[];
+  artists: ArtistOpt[];
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState<ChangeRoleState, FormData>(
@@ -64,30 +64,33 @@ function RoleEditor({
     null,
   );
   const [role, setRole] = useState<Role>((u.role ?? "artiste") as Role);
-  const [ficheId, setFicheId] = useState("");
-  const dirty = role !== u.role;
+  const [ficheId, setFicheId] = useState(u.artistId ?? "");
+  const ficheDirty = role === "artiste" && ficheId !== (u.artistId ?? "");
+  const dirty = role !== u.role || ficheDirty;
 
-  // Après application, le rôle vient des données serveur : on force leur
+  // Fiches proposables pour CE compte : les libres + celle qui lui est déjà liée.
+  const ficheOptions = artists.filter((a) => !a.linked || a.id === u.artistId);
+
+  // Après application, les données serveur font foi : on force leur
   // rafraîchissement puis on réaligne la sélection locale dessus.
   useEffect(() => {
     if (state?.ok) router.refresh();
   }, [state, router]);
   useEffect(() => {
     setRole((u.role ?? "artiste") as Role);
-    setFicheId("");
-  }, [u.role]);
+    setFicheId(u.artistId ?? "");
+  }, [u.role, u.artistId]);
 
   return (
     <div className="flex flex-col items-end gap-1">
       <form
         action={action}
         onSubmit={(e) => {
-          if (
-            !confirm(
-              `Passer ${u.name} en ${ROLE_LABEL[role]} ? Ses sessions seront déconnectées.`,
-            )
-          )
-            e.preventDefault();
+          const msg =
+            role !== u.role
+              ? `Passer ${u.name} en ${ROLE_LABEL[role]} ? Ses sessions seront déconnectées.`
+              : `Changer la fiche liée à ${u.name} ? Ses sessions seront déconnectées.`;
+          if (!confirm(msg)) e.preventDefault();
         }}
         className="flex items-center gap-2 flex-wrap justify-end"
       >
@@ -102,14 +105,14 @@ function RoleEditor({
             label: ROLE_LABEL[r],
           }))}
         />
-        {dirty && role === "artiste" && (
+        {role === "artiste" && (
           <AdminDropdown
             name="artistId"
             ariaLabel="Fiche artiste à lier"
             value={ficheId}
             onChange={setFicheId}
-            placeholder={freeArtists.length ? "Fiche à lier…" : "Aucune fiche libre"}
-            options={freeArtists.map((a) => ({ value: a.id, label: a.name }))}
+            placeholder={ficheOptions.length ? "Fiche à lier…" : "Aucune fiche libre"}
+            options={ficheOptions.map((a) => ({ value: a.id, label: a.name }))}
           />
         )}
         {dirty && (
@@ -307,7 +310,7 @@ export function AdministrationClient({
               </div>
               <div className="flex items-center gap-4 shrink-0">
                 {callerRole === "superadmin" && u.id !== callerId ? (
-                  <RoleEditor u={u} freeArtists={freeArtists} />
+                  <RoleEditor u={u} artists={artists} />
                 ) : (
                   <span className="text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
                     {ROLE_LABEL[u.role ?? ""] ?? u.role}
