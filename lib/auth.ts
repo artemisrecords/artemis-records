@@ -15,6 +15,17 @@ export const auth = betterAuth({
   appName: "ARTémis Records",
   database: drizzleAdapter(authDb, { provider: "pg" }),
 
+  // Un déploiement Vercel est servi sous plusieurs hosts (URL du déploiement,
+  // alias de branche, domaine du projet). Better Auth ne tolère que
+  // BETTER_AUTH_URL par défaut → 403 "Invalid origin" depuis les autres.
+  // On fait confiance aux URLs système injectées par Vercel.
+  trustedOrigins: [
+    process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`,
+    process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL &&
+      `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+  ].filter((o): o is string => Boolean(o)),
+
   // Connexion par magic link uniquement : pas de mot de passe, pas de social.
   user: {
     additionalFields: {
