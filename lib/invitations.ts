@@ -2,14 +2,14 @@ import { randomUUID, randomBytes } from "node:crypto";
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { invitation, user, artists } from "@/lib/db/schema";
+import { invitation, user, artists, session } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
 import type { Role } from "@/lib/permissions";
 
 /** Qui peut inviter quel rôle (superadmin > admin > artiste). */
 const INVITABLE: Record<Role, Role[]> = {
-  superadmin: ["admin", "artiste"],
+  superadmin: ["superadmin", "admin", "artiste"],
   admin: ["artiste"],
   artiste: [],
 };
@@ -196,6 +196,58 @@ export async function revokeInvitation(id: string) {
 /** Supprime un compte (sessions/comptes liés supprimés en cascade). */
 export async function deleteUserAccount(id: string) {
   await db.delete(user).where(eq(user.id, id));
+}
+
+/**
+ * Change le rôle d'un compte (jamais le sien — garantit qu'il reste toujours
+ * au moins un superadmin). Lie la fiche artiste pour le rôle artiste, la
+ * délie sinon, puis révoque les sessions du compte : la personne se
+ * reconnecte par magic link avec ses nouveaux droits.
+ */
+export async function changeUserRole(args: {
+  callerId: string;
+  userId: string;
+  role: Role;
+  artistId?: string | null;
+}) {
+  if (args.userId === args.callerId) {
+    throw new Error("Vous ne pouvez pas changer votre propre rôle.");
+  }
+  const [target] = await db
+    .select({ id: user.id, role: user.role, name: user.name })
+    .from(user)
+    .where(eq(user.id, args.userId))
+    .limit(1);
+  if (!target) throw new Error("Compte introuvable.");
+  if (target.role === args.role) throw new Error("Ce compte a déjà ce rôle.");
+
+  let artistId: string | null = null;
+  if (args.role === "artiste") {
+    if (!args.artistId) throw new Error("Sélectionnez la fiche artiste à lier.");
+    const [artist] = await db
+      .select({ id: artists.id })
+      .from(artists)
+      .where(eq(artists.id, args.artistId))
+      .limit(1);
+    if (!artist) throw new Error("Fiche artiste introuvable.");
+    const [linked] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.artistId, args.artistId))
+      .limit(1);
+    if (linked && linked.id !== args.userId) {
+      throw new Error("Cette fiche est déjà liée à un compte.");
+    }
+    artistId = args.artistId;
+  }
+
+  await db
+    .update(user)
+    .set({ role: args.role, artistId })
+    .where(eq(user.id, args.userId));
+  await db.delete(session).where(eq(session.userId, args.userId));
+
+  return { name: target.name };
 }
 
 function invitationEmail(url: string, role: Role) {
