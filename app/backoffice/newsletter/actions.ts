@@ -8,6 +8,7 @@ import {
   NEWSLETTER_SIGNUP_KEY,
   NEWSLETTER_DASHBOARD_KEY,
 } from "@/lib/db/queries";
+import { requireArtistAccess, requireRole } from "@/lib/auth-helpers";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -39,6 +40,7 @@ export async function saveNewsletterSettings(input: {
   signupUrl: string;
   dashboardUrl: string;
 }): Promise<ActionResult> {
+  await requireRole("superadmin", "admin");
   const signup = normalizeUrl(input.signupUrl);
   const dashboard = normalizeUrl(input.dashboardUrl);
   if (signup.error) return { ok: false, error: signup.error };
@@ -56,6 +58,8 @@ export async function saveArtistNewsletter(input: {
   artistId: string;
   url: string;
 }): Promise<ActionResult> {
+  // Un artiste gère le lien newsletter de SA fiche (depuis /espace).
+  await requireArtistAccess(input.artistId);
   const { value, error } = normalizeUrl(input.url);
   if (error) return { ok: false, error };
 
@@ -67,5 +71,6 @@ export async function saveArtistNewsletter(input: {
   revalidatePath("/backoffice/newsletter");
   revalidatePath(`/backoffice/artistes/${input.artistId}`);
   revalidatePath(`/artists/${input.artistId}`);
+  revalidatePath("/espace");
   return { ok: true };
 }

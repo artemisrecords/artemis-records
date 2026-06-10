@@ -3,9 +3,9 @@ import { requireRole } from "@/lib/auth-helpers";
 import { listAccounts } from "@/lib/invitations";
 import { db } from "@/lib/db";
 import { artists, user } from "@/lib/db/schema";
-import { ComptesClient } from "./ComptesClient";
+import { AdministrationClient } from "./AdministrationClient";
 
-export default async function ComptesPage() {
+export default async function AdministrationPage() {
   const { user: caller, role } = await requireRole("superadmin", "admin");
   const { users, pending } = await listAccounts();
 
@@ -25,7 +25,7 @@ export default async function ComptesPage() {
   }));
 
   return (
-    <ComptesClient
+    <AdministrationClient
       callerId={caller.id}
       callerRole={role}
       users={users}

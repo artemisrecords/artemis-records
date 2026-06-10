@@ -1,13 +1,17 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Eyebrow } from "@/components/Primitives";
+import { AdminDropdown } from "@/components/admin/AdminDropdown";
 import type { Role } from "@/lib/permissions";
 import {
   inviteAction,
   revokeInvitationAction,
   deleteUserAction,
+  changeRoleAction,
   type InviteState,
+  type ChangeRoleState,
 } from "./actions";
 
 type UserRow = {
@@ -42,7 +46,100 @@ function fmtDate(d: Date | string) {
   });
 }
 
-export function ComptesClient({
+/**
+ * Sélecteur de rôle inline (superadmin uniquement, jamais sur soi-même).
+ * Passer en artiste exige de lier une fiche libre ; un compte déjà artiste
+ * peut changer de fiche liée. Le changement révoque les sessions du compte.
+ */
+function RoleEditor({
+  u,
+  artists,
+}: {
+  u: UserRow;
+  artists: ArtistOpt[];
+}) {
+  const router = useRouter();
+  const [state, action, pending] = useActionState<ChangeRoleState, FormData>(
+    changeRoleAction,
+    null,
+  );
+  const [role, setRole] = useState<Role>((u.role ?? "artiste") as Role);
+  const [ficheId, setFicheId] = useState(u.artistId ?? "");
+  const ficheDirty = role === "artiste" && ficheId !== (u.artistId ?? "");
+  const dirty = role !== u.role || ficheDirty;
+
+  // Fiches proposables pour CE compte : les libres + celle qui lui est déjà liée.
+  const ficheOptions = artists.filter((a) => !a.linked || a.id === u.artistId);
+
+  // Après application, les données serveur font foi : on force leur
+  // rafraîchissement puis on réaligne la sélection locale dessus.
+  useEffect(() => {
+    if (state?.ok) router.refresh();
+  }, [state, router]);
+  useEffect(() => {
+    setRole((u.role ?? "artiste") as Role);
+    setFicheId(u.artistId ?? "");
+  }, [u.role, u.artistId]);
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <form
+        action={action}
+        onSubmit={(e) => {
+          const msg =
+            role !== u.role
+              ? `Passer ${u.name} en ${ROLE_LABEL[role]} ? Ses sessions seront déconnectées.`
+              : `Changer la fiche liée à ${u.name} ? Ses sessions seront déconnectées.`;
+          if (!confirm(msg)) e.preventDefault();
+        }}
+        className="flex items-center gap-2 flex-wrap justify-end"
+      >
+        <input type="hidden" name="id" value={u.id} />
+        <AdminDropdown
+          name="role"
+          ariaLabel={`Rôle de ${u.name}`}
+          value={role}
+          onChange={(v) => setRole(v as Role)}
+          options={(["superadmin", "admin", "artiste"] as Role[]).map((r) => ({
+            value: r,
+            label: ROLE_LABEL[r],
+          }))}
+        />
+        {role === "artiste" && (
+          <AdminDropdown
+            name="artistId"
+            ariaLabel="Fiche artiste à lier"
+            value={ficheId}
+            onChange={setFicheId}
+            placeholder={ficheOptions.length ? "Fiche à lier…" : "Aucune fiche libre"}
+            options={ficheOptions.map((a) => ({ value: a.id, label: a.name }))}
+          />
+        )}
+        {dirty && (
+          <button
+            type="submit"
+            disabled={pending}
+            className="font-serif text-[11px] tracking-eyebrow uppercase font-bold text-magenta hover:text-ink cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+          >
+            {pending ? "…" : "Appliquer"}
+          </button>
+        )}
+      </form>
+      {state?.error && (
+        <span className="font-serif italic text-[12px] text-magenta">
+          {state.error}
+        </span>
+      )}
+      {state?.ok && !dirty && (
+        <span className="font-serif italic text-[12px] text-ink-muted">
+          {state.message}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function AdministrationClient({
   callerId,
   callerRole,
   users,
@@ -56,13 +153,22 @@ export function ComptesClient({
   artists: ArtistOpt[];
 }) {
   const invitableRoles: Role[] =
-    callerRole === "superadmin" ? ["admin", "artiste"] : ["artiste"];
+    callerRole === "superadmin"
+      ? ["admin", "artiste", "superadmin"]
+      : ["artiste"];
   const [state, action, isPending] = useActionState<InviteState, FormData>(
     inviteAction,
     null,
   );
   const [selectedRole, setSelectedRole] = useState<Role>(invitableRoles[0]);
+  const [inviteArtistId, setInviteArtistId] = useState("");
   const freeArtists = artists.filter((a) => !a.linked);
+
+  // Invitation envoyée : on vide la sélection de fiche (l'email, champ non
+  // contrôlé, est déjà réinitialisé par React).
+  useEffect(() => {
+    if (state?.ok) setInviteArtistId("");
+  }, [state]);
 
   const artistName = (id: string | null) =>
     id ? (artists.find((a) => a.id === id)?.name ?? id) : null;
@@ -80,18 +186,18 @@ export function ComptesClient({
   const inputCls =
     "w-full bg-transparent border-0 border-b border-ink/30 px-0 py-2.5 font-serif text-[15px] text-ink outline-none focus:border-magenta transition-colors";
   const labelCls =
-    "text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle";
+    "block text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle";
 
   return (
     <div className="space-y-12 max-w-[820px]">
       <header>
-        <Eyebrow>Espace label</Eyebrow>
+        <Eyebrow>Comptes &amp; accès</Eyebrow>
         <h1 className="font-display uppercase tracking-display font-normal text-[clamp(1.9rem,3.4vw,2.6rem)] leading-[1.05] mt-1">
-          Comptes &amp; accès
+          Administration
         </h1>
         <p className="font-serif italic text-[14px] text-ink-muted mt-2 leading-[1.55]">
           {callerRole === "superadmin"
-            ? "Invitez des administrateurs ou des artistes. L'accès se fait par invitation uniquement."
+            ? "Invitez des super admins, des administrateurs ou des artistes. L'accès se fait par invitation uniquement."
             : "Invitez des artistes et liez-les à leur fiche. L'accès se fait par invitation uniquement."}
         </p>
       </header>
@@ -117,47 +223,39 @@ export function ComptesClient({
           </div>
 
           <div>
-            <label htmlFor="role" className={labelCls}>
-              Rôle
-            </label>
-            <select
-              id="role"
+            <span className={labelCls}>Rôle</span>
+            <AdminDropdown
               name="role"
+              ariaLabel="Rôle"
+              variant="underline"
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value as Role)}
-              className={inputCls}
-            >
-              {invitableRoles.map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_LABEL[r]}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setSelectedRole(v as Role)}
+              options={invitableRoles.map((r) => ({
+                value: r,
+                label: ROLE_LABEL[r],
+              }))}
+            />
           </div>
 
           {selectedRole === "artiste" && (
             <div className="sm:col-span-2">
-              <label htmlFor="artistId" className={labelCls}>
-                Fiche artiste à lier
-              </label>
-              <select
-                id="artistId"
+              <span className={labelCls}>Fiche artiste à lier</span>
+              <AdminDropdown
                 name="artistId"
-                required
-                defaultValue=""
-                className={inputCls}
-              >
-                <option value="" disabled>
-                  {freeArtists.length
+                ariaLabel="Fiche artiste à lier"
+                variant="underline"
+                value={inviteArtistId}
+                onChange={setInviteArtistId}
+                placeholder={
+                  freeArtists.length
                     ? "Sélectionner une fiche…"
-                    : "Aucune fiche disponible"}
-                </option>
-                {freeArtists.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
+                    : "Aucune fiche disponible"
+                }
+                options={freeArtists.map((a) => ({
+                  value: a.id,
+                  label: a.name,
+                }))}
+              />
             </div>
           )}
 
@@ -211,9 +309,13 @@ export function ComptesClient({
                 </div>
               </div>
               <div className="flex items-center gap-4 shrink-0">
-                <span className="text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-                  {ROLE_LABEL[u.role ?? ""] ?? u.role}
-                </span>
+                {callerRole === "superadmin" && u.id !== callerId ? (
+                  <RoleEditor u={u} artists={artists} />
+                ) : (
+                  <span className="text-[10px] tracking-eyebrow uppercase font-bold text-ink-subtle">
+                    {ROLE_LABEL[u.role ?? ""] ?? u.role}
+                  </span>
+                )}
                 {canDelete(u) && (
                   <form
                     action={deleteUserAction}

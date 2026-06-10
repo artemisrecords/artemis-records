@@ -52,7 +52,15 @@ function StatusLine({ status }: { status: Status }) {
   );
 }
 
-export function ArtistEditClient({ artist }: { artist: ArtistWithShows }) {
+export function ArtistEditClient({
+  artist,
+  mode = "admin",
+}: {
+  artist: ArtistWithShows;
+  // En mode artiste (/espace) : pas de publication, d'archivage ni de lien roster.
+  mode?: "admin" | "artiste";
+}) {
+  const isAdmin = mode === "admin";
   const [tab, setTab] = useState<Tab>("identite");
 
   // Publication (action instantanée).
@@ -310,11 +318,13 @@ export function ArtistEditClient({ artist }: { artist: ArtistWithShows }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-2 text-[11px] tracking-eyebrow uppercase font-bold text-ink-subtle">
-        <Link href="/backoffice/artistes" className="hover:text-ink">
-          ← Roster
-        </Link>
-      </div>
+      {isAdmin && (
+        <div className="flex items-center gap-2 text-[11px] tracking-eyebrow uppercase font-bold text-ink-subtle">
+          <Link href="/backoffice/artistes" className="hover:text-ink">
+            ← Roster
+          </Link>
+        </div>
+      )}
 
       <div className="bg-paper-soft border border-ink/10 rounded-[2px] overflow-hidden">
         <div
@@ -353,29 +363,31 @@ export function ArtistEditClient({ artist }: { artist: ArtistWithShows }) {
 
         <div className="px-8 pt-12 pb-6 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2.5 cursor-pointer select-none">
-              <span
-                className={`relative w-10 h-[22px] rounded-full transition-colors ${
-                  published ? "bg-vert-foret-700" : "bg-ink/25"
-                }`}
-              >
+            {isAdmin && (
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <span
-                  className={`absolute top-0.5 w-[18px] h-[18px] rounded-full bg-beige-sable transition-all ${
-                    published ? "left-[20px]" : "left-0.5"
+                  className={`relative w-10 h-[22px] rounded-full transition-colors ${
+                    published ? "bg-vert-foret-700" : "bg-ink/25"
                   }`}
+                >
+                  <span
+                    className={`absolute top-0.5 w-[18px] h-[18px] rounded-full bg-beige-sable transition-all ${
+                      published ? "left-[20px]" : "left-0.5"
+                    }`}
+                  />
+                </span>
+                <input
+                  type="checkbox"
+                  checked={published}
+                  disabled={pubPending}
+                  onChange={(e) => togglePublished(e.target.checked)}
+                  className="sr-only"
                 />
-              </span>
-              <input
-                type="checkbox"
-                checked={published}
-                disabled={pubPending}
-                onChange={(e) => togglePublished(e.target.checked)}
-                className="sr-only"
-              />
-              <span className="text-[11px] tracking-eyebrow uppercase font-bold">
-                {published ? "En ligne" : "Hors ligne"}
-              </span>
-            </label>
+                <span className="text-[11px] tracking-eyebrow uppercase font-bold">
+                  {published ? "En ligne" : "Hors ligne"}
+                </span>
+              </label>
+            )}
             <Pill tone={published ? "live" : "draft"}>
               {published ? "Publié" : "Brouillon"}
             </Pill>
@@ -751,6 +763,7 @@ export function ArtistEditClient({ artist }: { artist: ArtistWithShows }) {
             />
           </div>
 
+          {isAdmin && (
           <div className="bg-paper-soft border border-ink/10 rounded-[2px] p-5">
             <AdminEyebrow className="mb-3">Zone dangereuse</AdminEyebrow>
             <p className="italic text-[12px] text-ink-muted leading-[1.5]">
@@ -771,6 +784,7 @@ export function ArtistEditClient({ artist }: { artist: ArtistWithShows }) {
               )}
             </div>
           </div>
+          )}
         </aside>
       </div>
     </div>

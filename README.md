@@ -46,7 +46,8 @@ app/
   news/[id]/page.tsx      # article, generateStaticParams
   contact/page.tsx        # formulaire (client)
   demo/page.tsx           # soumission démo (client)
-  charte/page.tsx         # charte graphique (logos, couleurs, type)
+  charte/page.tsx         # charte des valeurs & engagements du label
+  charte-graphique/page.tsx # charte graphique (logos, couleurs, type)
   legal/ privacy/ cgu/    # mentions légales
   not-found.tsx           # 404
 

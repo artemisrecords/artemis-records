@@ -26,7 +26,7 @@ Env vars (see `.env.example`): `DATABASE_URL` (Neon Postgres, Vercel Marketplace
 
 ### Route groups: public site vs. backoffice
 
-- `app/(public)/`: marketing site (home, `/about`, `/artists`, `/artists/[id]`, `/news`, `/news/[id]`, `/contact`, `/demo`, `/auth`, `/charte`, `/legal`, `/privacy`, `/cgu`). Wrapped by the root layout's `Nav` + `Footer` via `app/layout.tsx`.
+- `app/(public)/`: marketing site (home, `/about`, `/artists`, `/artists/[id]`, `/news`, `/news/[id]`, `/contact`, `/demo`, `/auth`, `/charte`, `/charte-graphique`, `/legal`, `/privacy`, `/cgu`). Wrapped by the root layout's `Nav` + `Footer` via `app/layout.tsx`. `/charte` is the label's values & engagements charter; `/charte-graphique` is the visual identity (logos, couleurs, typo), linked only from the footer bottom bar.
 - `app/backoffice/`: admin panel (`artistes/`, `journal/`, `demos/`, `demandes/`, `agenda/`, `contrats/`, `newsletter/`, `statistiques/`, `reglages/`, `compte/`). Wrapped by `app/backoffice/layout.tsx` → `AdminChrome` (sidebar + topbar + command palette, ⌘K). No auth guard yet. The `/auth` page is UI-only.
 
 Both groups share the root `<html>` shell. Path alias `@/*` → repo root.

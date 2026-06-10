@@ -26,6 +26,7 @@ const COMMANDS: CommandItem[] = [
   { id: "nav-stats", group: "Aller à", label: "Statistiques", href: "/backoffice/statistiques", shortcut: "G S", keywords: ["streams", "chiffres"] },
   { id: "nav-cts", group: "Aller à", label: "Contrats", href: "/backoffice/contrats", shortcut: "G C", keywords: ["juridique"] },
   { id: "nav-reg", group: "Aller à", label: "Réglages", href: "/backoffice/reglages", shortcut: "G ," },
+  { id: "nav-adm", group: "Aller à", label: "Administration", href: "/backoffice/administration", keywords: ["comptes", "accès", "invitations", "équipe", "utilisateurs"] },
   // Creation
   { id: "new-art", group: "Créer", label: "Signer un·e artiste", href: "/backoffice/artistes/nouveau", shortcut: "N A" },
   { id: "new-news", group: "Créer", label: "Nouvelle entrée journal", href: "/backoffice/journal/nouveau", shortcut: "N J" },

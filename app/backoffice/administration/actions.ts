@@ -9,6 +9,7 @@ import {
   createInvitation,
   revokeInvitation,
   deleteUserAccount,
+  changeUserRole,
 } from "@/lib/invitations";
 import type { Role } from "@/lib/permissions";
 
@@ -34,8 +35,43 @@ export async function inviteAction(
       role: targetRole,
       artistId,
     });
-    revalidatePath("/backoffice/comptes");
+    revalidatePath("/backoffice/administration");
     return { ok: true, message: `Invitation envoyée à ${res.email}.` };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Une erreur est survenue." };
+  }
+}
+
+export type ChangeRoleState =
+  | { ok?: boolean; message?: string; error?: string }
+  | null;
+
+export async function changeRoleAction(
+  _prev: ChangeRoleState,
+  formData: FormData,
+): Promise<ChangeRoleState> {
+  try {
+    // Seul un superadmin change les rôles (un admin ne gère que des artistes,
+    // qu'il passe par suppression + ré-invitation s'il le faut).
+    const { user: caller } = await requireRole("superadmin");
+    const id = String(formData.get("id") ?? "");
+    const targetRole = String(formData.get("role") ?? "") as Role;
+    if (!["superadmin", "admin", "artiste"].includes(targetRole)) {
+      throw new Error("Rôle invalide.");
+    }
+    const artistIdRaw = formData.get("artistId");
+
+    const res = await changeUserRole({
+      callerId: caller.id,
+      userId: id,
+      role: targetRole,
+      artistId: artistIdRaw ? String(artistIdRaw) : null,
+    });
+    revalidatePath("/backoffice/administration");
+    return {
+      ok: true,
+      message: `Compte de ${res.name} mis à jour. Une reconnexion sera nécessaire de son côté.`,
+    };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Une erreur est survenue." };
   }
@@ -55,7 +91,7 @@ export async function revokeInvitationAction(formData: FormData) {
     throw new Error("Action non autorisée.");
   }
   await revokeInvitation(id);
-  revalidatePath("/backoffice/comptes");
+  revalidatePath("/backoffice/administration");
 }
 
 export async function deleteUserAction(formData: FormData) {
@@ -78,5 +114,5 @@ export async function deleteUserAction(formData: FormData) {
     throw new Error("Action non autorisée.");
   }
   await deleteUserAccount(id);
-  revalidatePath("/backoffice/comptes");
+  revalidatePath("/backoffice/administration");
 }

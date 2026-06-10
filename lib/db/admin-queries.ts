@@ -19,7 +19,7 @@ export async function getSubscribers(): Promise<SubscriberRow[]> {
 }
 
 export type StatEvent = {
-  kind: "demo" | "demande" | "news" | "abonne";
+  kind: "demo" | "demande" | "news";
   date: string; // ISO yyyy-mm-dd
 };
 
@@ -28,7 +28,6 @@ export type LabelStats = {
   news: { total: number; published: number };
   demos: { total: number; nouveau: number; retenu: number; refuse: number };
   demands: { total: number; ouverte: number; en_cours: number; close: number };
-  subscribers: { total: number; confirmed: number };
   shows: { total: number; upcoming: number };
   contracts: { total: number; active: number };
   events: StatEvent[];
@@ -37,12 +36,11 @@ export type LabelStats = {
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 export async function getLabelStats(): Promise<LabelStats> {
-  const [artists, news, demoRows, demandRows, subs, contractRows] = await Promise.all([
+  const [artists, news, demoRows, demandRows, contractRows] = await Promise.all([
     getArtists(),
     getAllNews(),
     getDemos(),
     getDemands(),
-    getSubscribers(),
     listContracts(),
   ]);
 
@@ -53,7 +51,6 @@ export async function getLabelStats(): Promise<LabelStats> {
     ...demoRows.map((d) => ({ kind: "demo" as const, date: iso(d.receivedAt) })),
     ...demandRows.map((d) => ({ kind: "demande" as const, date: iso(d.receivedAt) })),
     ...news.map((n) => ({ kind: "news" as const, date: n.date })),
-    ...subs.map((s) => ({ kind: "abonne" as const, date: iso(s.subscribedAt) })),
   ];
 
   return {
@@ -76,10 +73,6 @@ export async function getLabelStats(): Promise<LabelStats> {
       ouverte: demandRows.filter((d) => d.status === "ouverte").length,
       en_cours: demandRows.filter((d) => d.status === "en_cours").length,
       close: demandRows.filter((d) => d.status === "close").length,
-    },
-    subscribers: {
-      total: subs.length,
-      confirmed: subs.filter((s) => s.confirmedAt !== null).length,
     },
     shows: {
       total: shows.length,
