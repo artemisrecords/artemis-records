@@ -42,7 +42,7 @@ function fmtDate(d: Date | string) {
   });
 }
 
-export function ComptesClient({
+export function AdministrationClient({
   callerId,
   callerRole,
   users,
@@ -85,9 +85,9 @@ export function ComptesClient({
   return (
     <div className="space-y-12 max-w-[820px]">
       <header>
-        <Eyebrow>Espace label</Eyebrow>
+        <Eyebrow>Comptes &amp; accès</Eyebrow>
         <h1 className="font-display uppercase tracking-display font-normal text-[clamp(1.9rem,3.4vw,2.6rem)] leading-[1.05] mt-1">
-          Comptes &amp; accès
+          Administration
         </h1>
         <p className="font-serif italic text-[14px] text-ink-muted mt-2 leading-[1.55]">
           {callerRole === "superadmin"

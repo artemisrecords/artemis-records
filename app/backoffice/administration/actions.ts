@@ -34,7 +34,7 @@ export async function inviteAction(
       role: targetRole,
       artistId,
     });
-    revalidatePath("/backoffice/comptes");
+    revalidatePath("/backoffice/administration");
     return { ok: true, message: `Invitation envoyée à ${res.email}.` };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Une erreur est survenue." };
@@ -55,7 +55,7 @@ export async function revokeInvitationAction(formData: FormData) {
     throw new Error("Action non autorisée.");
   }
   await revokeInvitation(id);
-  revalidatePath("/backoffice/comptes");
+  revalidatePath("/backoffice/administration");
 }
 
 export async function deleteUserAction(formData: FormData) {
@@ -78,5 +78,5 @@ export async function deleteUserAction(formData: FormData) {
     throw new Error("Action non autorisée.");
   }
   await deleteUserAccount(id);
-  revalidatePath("/backoffice/comptes");
+  revalidatePath("/backoffice/administration");
 }

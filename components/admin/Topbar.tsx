@@ -14,6 +14,7 @@ const CRUMBS: Record<string, string> = {
   agenda: "Agenda",
   newsletter: "Newsletter",
   reglages: "Réglages",
+  administration: "Administration",
   statistiques: "Statistiques",
   contrats: "Contrats",
   nouveau: "Nouveau",

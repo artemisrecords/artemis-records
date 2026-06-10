@@ -115,6 +115,11 @@ const SECTIONS: { title: string; items: Item[] }[] = [
         label: "Réglages",
         match: (p) => p.startsWith("/backoffice/reglages"),
       },
+      {
+        href: "/backoffice/administration",
+        label: "Administration",
+        match: (p) => p.startsWith("/backoffice/administration"),
+      },
     ],
   },
 ];
