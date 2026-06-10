@@ -19,6 +19,15 @@ export function AdminChrome({
   const [mobileOpen, setMobileOpen] = useState(false);
   useCommandPaletteShortcut(() => setPaletteOpen((v) => !v));
 
+  // Badges de la sidebar dérivés des notifications réelles (même source que
+  // la cloche du topbar) : démos « nouveau », demandes « ouverte », contrats
+  // à signer ou à échéance proche.
+  const badges = {
+    demos: notifications.filter((n) => n.kind === "demo").length,
+    demandes: notifications.filter((n) => n.kind === "demande").length,
+    contrats: notifications.filter((n) => n.kind === "contrat").length,
+  };
+
   return (
     <div className="flex min-h-screen bg-paper">
       <a
@@ -29,6 +38,7 @@ export function AdminChrome({
       </a>
       <Sidebar
         user={user}
+        badges={badges}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />
