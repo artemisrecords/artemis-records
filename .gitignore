@@ -16,3 +16,6 @@ next-env.d.ts
 .env.local
 .env.development.local
 .env*
+
+# Claude Code local settings (personnel, ne pas versionner)
+.claude/settings.local.json
