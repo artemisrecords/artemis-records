@@ -67,8 +67,9 @@ lib/
 
 public/
   assets/                 # logos, icônes, portraits, cousines.webp, moodboards
-  fonts/CatchyMager.woff  # police display, self‑host
 ```
+
+La police display (Catchy Mager) n'est **pas dans le repo** : servie depuis Vercel Blob (voir « Polices : notes de licence »).
 
 ---
 
@@ -106,12 +107,12 @@ Chaque artiste a un `primaryColor` (ex. Caëlya `#7800a8`). Dans `app/artists/[i
 
 > ⚠️ **Catchy Mager** est une police de **Sensatype Studio** (2020), **gratuite en usage personnel**, **licence commerciale requise** pour la prod.
 
-Le fichier `/public/fonts/CatchyMager.woff` est téléchargé depuis [CDNFonts](https://www.cdnfonts.com/catchy-mager.font) (redistribution autorisée par le fondeur pour preview). Le `@font-face` tente d'abord `local('Catchy Mager')` puis retombe sur le fichier self‑hosté.
+Le fichier woff (téléchargé à l'origine depuis [CDNFonts](https://www.cdnfonts.com/catchy-mager.font)) est **volontairement hors du repo** (repo public ≠ licence de redistribution) : il est hébergé sur **Vercel Blob** (`fonts/CatchyMager.woff` dans le store du projet) et référencé en URL absolue dans le `@font-face` de `app/globals.css`. Le `@font-face` tente d'abord `local('Catchy Mager')` puis retombe sur le fichier Blob.
 
 **Avant mise en prod publique** (domaine `artemisrecordslabel.com` ou équivalent) :
 
 1. Acheter une licence **web** chez Sensatype ([Creative Market](https://creativemarket.com/sensatype)), typiquement 20–40 $ selon le tier de pageviews.
-2. Remplacer `/public/fonts/CatchyMager.woff` par les fichiers reçus (souvent woff2 + woff).
+2. Remplacer le fichier sur Vercel Blob par les fichiers reçus (souvent woff2 + woff) et mettre à jour le `@font-face`.
 3. Stocker le PDF de licence hors‑repo (Drive / Notion) ; ne pas commiter.
 
 Italiana + Libre Baskerville sont sous **SIL Open Font License** (libre, usage commercial OK).
