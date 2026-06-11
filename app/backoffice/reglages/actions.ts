@@ -28,23 +28,32 @@ export async function saveLabelSettingsAction(
 ): Promise<ReglagesState> {
   await requireRole("superadmin", "admin");
 
-  const email = String(formData.get("email") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
+  const emails = formData
+    .getAll("emails")
+    .map((v) => String(v).trim())
+    .filter(Boolean);
+  const phones = formData
+    .getAll("phones")
+    .map((v) => String(v).trim())
+    .filter(Boolean);
   const address = String(formData.get("address") ?? "").trim();
 
-  if (!email.includes("@")) {
-    return { error: "Email de contact invalide." };
+  for (const email of emails) {
+    if (!email.includes("@")) {
+      return { error: `Email invalide : ${email}` };
+    }
   }
 
   try {
-    await upsertSetting(LABEL_EMAIL_KEY, email);
-    await upsertSetting(LABEL_PHONE_KEY, phone);
+    await upsertSetting(LABEL_EMAIL_KEY, JSON.stringify(emails));
+    await upsertSetting(LABEL_PHONE_KEY, JSON.stringify(phones));
     await upsertSetting(LABEL_ADDRESS_KEY, address);
   } catch (e) {
     console.warn("[reglages] enregistrement échoué:", (e as Error).message);
     return { error: "Enregistrement impossible. Réessayez." };
   }
 
-  revalidatePath("/backoffice/reglages");
+  // Le footer (layout racine) et la page contact affichent ces réglages.
+  revalidatePath("/", "layout");
   return { ok: true };
 }

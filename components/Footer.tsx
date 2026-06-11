@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Eyebrow, Wordmark } from "./Primitives";
+import type { LabelSettings } from "@/lib/db/queries";
+import { addressLines } from "@/lib/address";
 
-export const Footer = () => {
+export const Footer = ({ label }: { label: LabelSettings }) => {
   const pathname = usePathname() || "/";
   if (
     pathname === "/auth" ||
@@ -57,15 +59,26 @@ export const Footer = () => {
 
     <div className="col-span-2 sm:col-span-1">
       <Eyebrow className="!text-beige-sable/55 mb-3.5">Contact</Eyebrow>
-      <div className="text-[12px] mb-2 opacity-85">07 78 47 22 30</div>
-      <div className="text-[12px] mb-2 opacity-85">
-        artemis.inscriptions@gmail.com
-      </div>
-      <div className="text-[12px] mb-2 opacity-85 leading-[1.55]">
-        22 rue des Épinettes
-        <br />
-        95180 Menucourt
-      </div>
+      {label.phones.map((phone) => (
+        <div key={phone} className="text-[12px] mb-2 opacity-85">
+          {phone}
+        </div>
+      ))}
+      {label.emails.map((email) => (
+        <div key={email} className="text-[12px] mb-2 opacity-85">
+          {email}
+        </div>
+      ))}
+      {label.address && (
+        <div className="text-[12px] mb-2 opacity-85 leading-[1.55]">
+          {addressLines(label.address).map((line, i) => (
+            <span key={line}>
+              {i > 0 && <br />}
+              {line}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="flex gap-2.5 mt-3.5">
         {["IG", "YT", "TK", "FB"].map((s) => (
           <span

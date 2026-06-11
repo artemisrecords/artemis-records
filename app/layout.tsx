@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { StarCursor } from "@/components/StarCursor";
+import { getLabelSettings, LABEL_DEFAULTS } from "@/lib/db/queries";
 
 export const metadata: Metadata = {
   title: "ARTémis Records · Label musical · Paris",
@@ -18,7 +19,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const label = await getLabelSettings().catch(() => LABEL_DEFAULTS);
   return (
     <html lang="fr">
       <head>
@@ -37,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <div className="min-h-screen flex flex-col">
           <Nav />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer label={label} />
         </div>
         <StarCursor />
       </body>

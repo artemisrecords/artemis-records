@@ -14,10 +14,17 @@ export type SessionUser = {
   role?: string | null;
 };
 
+export type SidebarBadges = {
+  demos: number;
+  demandes: number;
+  contrats: number;
+};
+
 type Item = {
   href: string;
   label: string;
-  badge?: number;
+  /** Compteur dynamique (notifications réelles) affiché en pastille. */
+  badgeKey?: keyof SidebarBadges;
   match: (p: string) => boolean;
 };
 
@@ -60,13 +67,13 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       {
         href: "/backoffice/demos",
         label: "Démos",
-        badge: 3,
+        badgeKey: "demos",
         match: (p) => p.startsWith("/backoffice/demos"),
       },
       {
         href: "/backoffice/demandes",
         label: "Demandes",
-        badge: 4,
+        badgeKey: "demandes",
         match: (p) => p.startsWith("/backoffice/demandes"),
       },
     ],
@@ -97,7 +104,7 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       {
         href: "/backoffice/contrats",
         label: "Contrats",
-        badge: 1,
+        badgeKey: "contrats",
         match: (p) => p.startsWith("/backoffice/contrats"),
       },
     ],
@@ -126,10 +133,12 @@ const SECTIONS: { title: string; items: Item[] }[] = [
 
 export const Sidebar = ({
   user,
+  badges,
   mobileOpen = false,
   onCloseMobile,
 }: {
   user: SessionUser;
+  badges?: SidebarBadges;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
 }) => {
@@ -234,6 +243,7 @@ export const Sidebar = ({
             <ul>
               {sec.items.map((it) => {
                 const active = it.match(pathname);
+                const badge = it.badgeKey ? (badges?.[it.badgeKey] ?? 0) : 0;
                 return (
                   <li key={it.href}>
                     <Link
@@ -256,9 +266,9 @@ export const Sidebar = ({
                       >
                         {it.label}
                       </span>
-                      {it.badge ? (
+                      {badge > 0 ? (
                         <span className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 text-[10px] tracking-eyebrow uppercase font-bold bg-magenta text-white rounded-full">
-                          {it.badge}
+                          {badge}
                         </span>
                       ) : null}
                     </Link>

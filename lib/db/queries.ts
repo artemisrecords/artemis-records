@@ -12,12 +12,34 @@ export const LABEL_PHONE_KEY = "label_phone";
 export const LABEL_ADDRESS_KEY = "label_address";
 
 export const LABEL_DEFAULTS = {
-  email: "artemis.inscriptions@gmail.com",
-  phone: "07 78 47 22 30",
+  emails: ["artemis.inscriptions@gmail.com"],
+  phones: ["07 78 47 22 30"],
   address: "22 rue des Épinettes, 95180 Menucourt",
 };
 
-export type LabelSettings = { email: string; phone: string; address: string };
+export type LabelSettings = {
+  emails: string[];
+  phones: string[];
+  address: string;
+};
+
+// Les emails/téléphones sont stockés en tableau JSON ; les anciennes valeurs
+// étaient des chaînes simples. `undefined` = clé absente (→ défauts).
+function parseList(raw: string | undefined): string[] | undefined {
+  if (raw === undefined) return undefined;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(
+        (v): v is string => typeof v === "string" && v.trim() !== "",
+      );
+    }
+  } catch {
+    // valeur historique non-JSON : chaîne simple
+  }
+  const single = raw.trim();
+  return single ? [single] : [];
+}
 
 export async function getLabelSettings(): Promise<LabelSettings> {
   const rows = await db
@@ -28,14 +50,16 @@ export async function getLabelSettings(): Promise<LabelSettings> {
     );
   const byKey = new Map(rows.map((r) => [r.key, r.value]));
   return {
-    email: byKey.get(LABEL_EMAIL_KEY) ?? LABEL_DEFAULTS.email,
-    phone: byKey.get(LABEL_PHONE_KEY) ?? LABEL_DEFAULTS.phone,
+    emails: parseList(byKey.get(LABEL_EMAIL_KEY)) ?? LABEL_DEFAULTS.emails,
+    phones: parseList(byKey.get(LABEL_PHONE_KEY)) ?? LABEL_DEFAULTS.phones,
     address: byKey.get(LABEL_ADDRESS_KEY) ?? LABEL_DEFAULTS.address,
   };
 }
 
+// Les notifications doivent toujours avoir une cible, même si la liste
+// publique est laissée vide.
 export async function getLabelNotifyEmail(): Promise<string> {
-  return (await getLabelSettings()).email;
+  return (await getLabelSettings()).emails[0] ?? LABEL_DEFAULTS.emails[0];
 }
 
 export type NewsletterSettings = {
