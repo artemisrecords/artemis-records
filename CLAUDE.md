@@ -69,7 +69,7 @@ The home page is hardcoded to the "magazine" layout (`HomeClient`) and the `/art
 
 - **Language split**: user-facing copy in French, all identifiers/types/keys/commits in English. Preserve this when adding content.
 - **Dynamic background images**: use inline `style={{ background: \`center/cover url(${x})\` }}`, not Tailwind arbitrary values. Tailwind v4 doesn't handle runtime URLs.
-- **Fonts**: `font-display` = Catchy Mager (self-hosted at `/public/fonts/CatchyMager.woff`, **commercial license required before prod**, see README "Polices"); `font-serif` = Libre Baskerville; Italiana as display fallback. Both Google fonts loaded via `<link>` in `app/layout.tsx` head (not `next/font`).
+- **Fonts**: `font-display` = Catchy Mager (served from Vercel Blob, **deliberately not in the repo** — commercial license, see README "Polices"); `font-serif` = Libre Baskerville; Italiana as display fallback. Both Google fonts loaded via `<link>` in `app/layout.tsx` head (not `next/font`).
 - **Specs/plans**: `docs/superpowers/specs/` holds design specs and `docs/superpowers/plans/` holds implementation plans. Check these before large changes. They capture rejected alternatives (e.g. why Neon over Supabase).
 
 ## What's out of scope (intentionally)

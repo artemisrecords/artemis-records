@@ -2,10 +2,13 @@
 
 @font-face {
   font-family: "Catchy Mager";
+  /* Police commerciale (Sensatype) : servie depuis Vercel Blob, volontairement
+     absente du repo public — voir README "Polices". */
   src:
     local("Catchy Mager"),
     local("CatchyMager"),
-    url("/fonts/CatchyMager.woff") format("woff");
+    url("https://tr6w409cvxn6reny.public.blob.vercel-storage.com/fonts/CatchyMager.woff")
+      format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
