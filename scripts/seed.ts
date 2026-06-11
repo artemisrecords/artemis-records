@@ -861,8 +861,12 @@ async function main() {
   // Connexion par magic link uniquement, donc pas de mot de passe ici : une
   // ligne `user` suffit (Better Auth crée la session au clic du lien).
   console.log("▸ Seeding superadmin…");
-  const SUPERADMIN_EMAIL =
-    process.env.SEED_SUPERADMIN_EMAIL ?? "admin@exemple.fr";
+  const SUPERADMIN_EMAIL = process.env.SEED_SUPERADMIN_EMAIL;
+  if (!SUPERADMIN_EMAIL) {
+    throw new Error(
+      "SEED_SUPERADMIN_EMAIL manquant : ajoutez-le à .env.local (voir .env.example).",
+    );
+  }
   // Prénom « Super Admin », nom vide. `name` (nom complet) = prénom seul.
   await db
     .insert(user)
