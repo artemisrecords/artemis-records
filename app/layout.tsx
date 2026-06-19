@@ -6,6 +6,13 @@ import { Footer } from "@/components/Footer";
 import { StarCursor } from "@/components/StarCursor";
 import { getLabelSettings, LABEL_DEFAULTS } from "@/lib/db/queries";
 
+// Tout le site public est servi en ISR : pages mises en cache et régénérées
+// depuis la base au plus tard toutes les 60 s, sur chaque déploiement. Le
+// backoffice lit les cookies d'auth et reste donc dynamique (le revalidate y
+// est ignoré). Les actions backoffice appellent en plus revalidatePath pour des
+// mises à jour quasi instantanées quand la purge atteint le bon déploiement.
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "ARTémis Records · Label musical · Paris",
   description:
