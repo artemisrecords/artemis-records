@@ -24,7 +24,7 @@ export const Footer = ({ label }: { label: LabelSettings }) => {
         conditions et du bien-être. Nos valeurs guident chaque signature.
       </p>
       <div className="mt-[18px] text-[11px] tracking-eyebrow uppercase font-bold opacity-55">
-        « Viser la lune, retomber dans les étoiles. »
+        « Viser plus haut, rêver plus grand. »
       </div>
     </div>
 

@@ -35,7 +35,7 @@ const buildWavePath = ({
 };
 
 const VALUES = [
-  ["Inclusivité", "Une safe place pour les personnes LGBTQIA+, handicapées, racisées, ou porteuses d'une différence."],
+  ["Inclusivité", "Une safe place pour les personnes LGBTQIA+, en situation de handicap, ou porteuses d'une différence."],
   ["Féminisme", "Nous nous engageons à mettre en avant les femmes, trop peu représentées dans l'industrie musicale."],
   ["Climat", "Nous prenons au sérieux notre impact écologique : tournées raisonnées, productions sobres."],
   ["Diversité", "Un catalogue pluriel : styles, identités, régions du monde."],
@@ -184,18 +184,20 @@ export default function AboutPage() {
             comme vocation.
           </h3>
           <p className="text-[16px] leading-[1.75] max-w-[560px]">
-            À la suite d&apos;une formation en chargé de production, Shanna
-            (Caëlya) souhaite créer une structure pour d&apos;autres artistes et
-            son projet personnel.
+            À la suite de sa formation de chargée de production à l&apos;IESA et
+            aux Cours Florent Musique, Shanna décide de créer une structure
+            dédiée à l&apos;accompagnement d&apos;autres artistes, tout en
+            développant son propre projet artistique.
           </p>
           <p className="text-[16px] leading-[1.75] max-w-[560px]">
-            À côté, elle entre en 3e année de Bachelor en Industries Culturelles
-            et Créatives et se spécialise dans la branche production.
+            Actuellement en troisième année de Bachelor Industries Culturelles
+            et Créatives, elle met ses compétences au service du label afin de
+            contribuer à son développement et à son évolution constante.
           </p>
         </div>
         <div
           className="grain aspect-[4/5] w-[64%] mx-auto"
-          style={{ background: "center/cover no-repeat url(/assets/caelya.webp)" }}
+          style={{ background: "center/cover no-repeat url(/assets/caelya2.jpeg)" }}
         />
       </section>
 
@@ -205,7 +207,7 @@ export default function AboutPage() {
           <Eyebrow>Une évidence</Eyebrow>
           <p className="font-serif italic text-[clamp(22px,2.4vw,30px)] leading-[1.5] mt-5 text-ink">
             « L&apos;association entre les deux jeunes filles arrive lors de
-            leur dernière année au Cours Florent. C&apos;est alors une évidence
+            leur dernière année aux Cours Florent. C&apos;est alors une évidence
             pour elles : créer un label, une{" "}
             <em className="text-magenta not-italic uppercase font-display tracking-[0.12em] text-[0.72em]">
               safe place
@@ -239,8 +241,8 @@ export default function AboutPage() {
             rendre la musique plus accessible.
           </p>
           <p className="text-[16px] leading-[1.75] max-w-[620px] italic text-beige-sable/65">
-            ARTémis RECORDS valorise la différence, l&apos;authenticité des
-            artistes qui sortent du lot ou des codes sociaux.
+            ARTémis RECORDS valorise l&apos;authenticité des artistes qui
+            sortent du lot ou des codes sociaux.
           </p>
         </div>
         <div>
@@ -303,8 +305,8 @@ export default function AboutPage() {
           {[
             {
               n: "Caelya",
-              r: "Co-fondatrice · Direction artistique",
-              img: "/assets/caelya.webp",
+              r: "Co-fondatrice · Chargée de production",
+              img: "/assets/caelya2.jpeg",
               bio: "Artiste signée et co-fondatrice. Elle défend un label où l'on n'a pas à choisir entre liberté et structure.",
             },
             {
