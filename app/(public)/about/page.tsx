@@ -161,15 +161,15 @@ export default function AboutPage() {
           </h3>
           <p className="text-[16px] leading-[1.75] max-w-[560px]">
             Après une licence d&apos;Anglais et 3 années au Cours Florent
-            Musique, Chloé (Allicyone) cherche à se diversifier dans
-            l&apos;univers de la musique. Elle se passionne rapidement pour la
-            production phonographique et audiovisuelle en parallèle de son
-            propre projet artistique.
+            Musique, Chloé cherche à se diversifier dans l&apos;univers de la
+            musique, et se passionne de production phonographique et
+            audiovisuelle.
           </p>
           <p className="text-[16px] leading-[1.75] max-w-[560px]">
-            Grâce aux compétences et aux connaissances acquises pendant sa
-            formation, elle a développé une volonté d&apos;aider d&apos;autres
-            artistes dans leur carrière.
+            En parallèle de son propre projet artistique, elle a la volonté de
+            développer et d&apos;aider d&apos;autres artistes à développer leur
+            direction artistique, grâce aux compétences et aux connaissances
+            diversifiées qu&apos;elle a pu acquérir au Cours Florent.
           </p>
         </div>
       </section>
