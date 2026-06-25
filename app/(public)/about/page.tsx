@@ -151,7 +151,7 @@ export default function AboutPage() {
       <section className="px-[clamp(24px,4vw,56px)] py-[clamp(72px,9vw,110px)] grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-14 items-center">
         <div
           className="grain aspect-[4/5] w-[64%] mx-auto"
-          style={{ background: "center/cover no-repeat url(/assets/allicyone.webp)" }}
+          style={{ background: "center/cover no-repeat url(/assets/allicyone2.webp)" }}
         />
         <div>
           <Eyebrow className="!text-magenta">Chloé · Allicyone</Eyebrow>
@@ -161,15 +161,15 @@ export default function AboutPage() {
           </h3>
           <p className="text-[16px] leading-[1.75] max-w-[560px]">
             Après une licence d&apos;Anglais et 3 années au Cours Florent
-            Musique, Chloé (Allicyone) cherche à se diversifier dans
-            l&apos;univers de la musique. Elle se passionne rapidement pour la
-            production phonographique et audiovisuelle en parallèle de son
-            propre projet artistique.
+            Musique, Chloé cherche à se diversifier dans l&apos;univers de la
+            musique, et se passionne de production phonographique et
+            audiovisuelle.
           </p>
           <p className="text-[16px] leading-[1.75] max-w-[560px]">
-            Grâce aux compétences et aux connaissances acquises pendant sa
-            formation, elle a développé une volonté d&apos;aider d&apos;autres
-            artistes dans leur carrière.
+            En parallèle de son propre projet artistique, elle a la volonté de
+            développer et d&apos;aider d&apos;autres artistes à développer leur
+            direction artistique, grâce aux compétences et aux connaissances
+            diversifiées qu&apos;elle a pu acquérir au Cours Florent.
           </p>
         </div>
       </section>
@@ -312,7 +312,7 @@ export default function AboutPage() {
             {
               n: "Allicyone",
               r: "Co-fondatrice · A&R & Production",
-              img: "/assets/allicyone.webp",
+              img: "/assets/allicyone2.webp",
               bio: "Artiste signée et co-fondatrice. Elle repère, accompagne et produit les voix qui refusent le moule.",
             },
           ].map(({ n, r, img, bio }) => (
