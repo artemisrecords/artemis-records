@@ -151,7 +151,7 @@ export default function AboutPage() {
       <section className="px-[clamp(24px,4vw,56px)] py-[clamp(72px,9vw,110px)] grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-14 items-center">
         <div
           className="grain aspect-[4/5] w-[64%] mx-auto"
-          style={{ background: "center/cover no-repeat url(/assets/allicyone2.webp)" }}
+          style={{ background: "center/cover no-repeat url(/assets/allicyone2.jpeg)" }}
         />
         <div>
           <Eyebrow className="!text-magenta">Chloé · Allicyone</Eyebrow>
@@ -312,7 +312,7 @@ export default function AboutPage() {
             {
               n: "Allicyone",
               r: "Co-fondatrice · A&R & Production",
-              img: "/assets/allicyone2.webp",
+              img: "/assets/allicyone2.jpeg",
               bio: "Artiste signée et co-fondatrice. Elle repère, accompagne et produit les voix qui refusent le moule.",
             },
           ].map(({ n, r, img, bio }) => (
