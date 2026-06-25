@@ -312,7 +312,7 @@ export default function AboutPage() {
             {
               n: "Allicyone",
               r: "Co-fondatrice · A&R & Production",
-              img: "/assets/allicyone.webp",
+              img: "/assets/allicyone2.webp",
               bio: "Artiste signée et co-fondatrice. Elle repère, accompagne et produit les voix qui refusent le moule.",
             },
           ].map(({ n, r, img, bio }) => (
