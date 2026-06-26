@@ -27,7 +27,7 @@ export function HomeClient({
               ARTémis Records · Music Label
             </Eyebrow>
             <h1 className="font-display uppercase tracking-display text-[clamp(2rem,5vw,64px)] mt-3 mb-4 font-normal leading-[0.98] text-beige-sable">
-              Viser la lune, retomber dans les étoiles.
+              Viser plus haut, rêver plus grand.
             </h1>
             <p className="italic text-[18px] leading-[1.55] text-beige-sable/75 max-w-[520px]">
               ARTémis Records est un label français dédié aux artistes émergents,

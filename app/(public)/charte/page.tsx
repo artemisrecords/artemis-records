@@ -120,7 +120,7 @@ export default function ChartePage() {
         <div className="max-w-[680px] mx-auto">
           <Eyebrow className="!text-magenta">En une phrase</Eyebrow>
           <p className="font-serif italic text-[clamp(20px,2.3vw,28px)] leading-[1.5] mt-5 text-ink">
-            « Viser la lune, retomber dans les étoiles » — ensemble, dans le
+            « Viser plus haut, rêver plus grand » — ensemble, dans le
             respect, la bienveillance et la liberté de chacun·e.
           </p>
           <div className="mt-8 flex gap-3.5 justify-center flex-wrap">

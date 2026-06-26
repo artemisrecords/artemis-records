@@ -52,7 +52,7 @@ export default function AuthClient() {
             Espace label · Accès privé
           </Eyebrow>
           <h1 className="font-display uppercase tracking-display leading-[0.95] font-normal text-[clamp(2.75rem,6vw,5rem)]">
-            Viser la lune,
+            Viser plus haut,
             <br />
             <span className="font-serif italic text-magenta normal-case">
               piloter le label.

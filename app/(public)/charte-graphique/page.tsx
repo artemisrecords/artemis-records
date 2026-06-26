@@ -75,7 +75,7 @@ export default function CharteGraphiquePage() {
               Texte · Libre Baskerville
             </div>
             <div className="italic text-[22px] leading-[1.4] mt-2.5 mb-1.5">
-              Viser la lune, retomber dans les étoiles.
+              Viser plus haut, rêver plus grand.
             </div>
             <div className="text-[14px] leading-[1.7]">
               Le label accompagne les artistes émergents dans le respect de leur

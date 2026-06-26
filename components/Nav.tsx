@@ -294,7 +294,7 @@ export const Nav = () => {
               Proposer une démo <span aria-hidden>⟶</span>
             </Link>
             <p className="mt-4 text-[10px] font-bold uppercase tracking-eyebrow opacity-45">
-              Viser la lune, retomber dans les étoiles.
+              Viser plus haut, rêver plus grand.
             </p>
           </div>
         </aside>
