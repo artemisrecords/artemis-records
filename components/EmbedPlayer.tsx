@@ -24,7 +24,7 @@ export const EmbedPlayer = ({ embed }: { embed: Embed }) => {
   }
   if (embed.type === "youtube") {
     return (
-      <div className="bg-bleu-nuit-700">
+      <div className="bg-bleu-nuit-700 w-full max-w-[640px]">
         <div className="flex justify-between items-center px-4.5 py-3.5">
           <Eyebrow inverse className="!text-magenta">
             YouTube
