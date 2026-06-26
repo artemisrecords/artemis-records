@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getArtists, findArtist } from "@/lib/db/queries";
 import { Badge, Btn, ChapterTitle, Eyebrow } from "@/components/Primitives";
+import { ArtistBio } from "@/components/ArtistBio";
 import { EmbedPlayer } from "@/components/EmbedPlayer";
 import type { CSSProperties } from "react";
 
@@ -57,80 +58,58 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
         </div>
       </section>
 
-      {/* Bio + discography */}
-      <section className="px-[clamp(24px,4vw,56px)] py-[clamp(56px,8vw,96px)] grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-14">
-        <div>
-          <Eyebrow>Biographie</Eyebrow>
-          <div className="h-3" />
-          {artist.quote && (
-            <blockquote className="font-serif italic text-[clamp(20px,2vw,24px)] leading-[1.45] text-ink-muted my-1 mb-6.5 border-l-2 border-magenta pl-[22px] py-1 max-w-[620px]">
-              « {artist.quote} »
-            </blockquote>
-          )}
-          {(artist.bioLong || artist.bioShort).split("\n\n").map((p, i) => (
-            <p key={i} className="text-[16px] leading-[1.75] max-w-[620px]">
-              {p.split(/(\*[^*]+\*)/g).map((chunk, j) =>
-                chunk.startsWith("*") && chunk.endsWith("*") ? (
-                  <em key={j}>{chunk.slice(1, -1)}</em>
-                ) : (
-                  <span key={j}>{chunk}</span>
-                ),
-              )}
-            </p>
-          ))}
-          <div className="flex gap-2.5 flex-wrap mt-7">
-            {Object.entries(artist.socials).map(([k, v]) => (
-              <a
-                key={k}
-                href={v}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-serif text-[11px] tracking-eyebrow uppercase font-bold px-4 py-2.5 border border-ink/30 rounded-full cursor-pointer hover:border-ink/60"
-              >
-                {k}
-              </a>
-            ))}
-          </div>
-          {artist.newsletterUrl && (
-            <div className="mt-8">
-              <Eyebrow>Newsletter</Eyebrow>
-              <div className="h-3" />
-              <Btn kind="primary" href={artist.newsletterUrl} newTab>
-                S&apos;inscrire à la newsletter de {artist.name}
-              </Btn>
-            </div>
-          )}
-        </div>
-        <aside>
-          <Eyebrow>Discographie</Eyebrow>
-          <div className="mt-4">
-            {artist.discography.map((d) => (
-              <div
-                key={d.id}
-                className="grid grid-cols-[72px_1fr_auto] gap-4 py-4 border-t border-ink/15 items-center"
-              >
+      {/* Bio + discography.
+          Desktop : la discographie « flotte » en haut à droite et la biographie
+          s'écoule à côté puis SOUS elle une fois sa hauteur dépassée (plus de
+          colonne vide à droite). `md:flow-root` confine le float dans la section.
+          Mobile : pile flex (bio puis discographie) ; la bio longue est repliée
+          derrière un « Voir plus » (cf. ArtistBio). */}
+      <section className="px-[clamp(24px,4vw,56px)] py-[clamp(56px,8vw,96px)] max-w-[1080px] mx-auto flex flex-col md:flow-root">
+        {artist.discography.length > 0 && (
+          <aside className="order-2 mt-12 md:mt-0 md:float-right md:w-[360px] md:ml-12 md:mb-4">
+            <Eyebrow>Discographie</Eyebrow>
+            <div className="mt-4">
+              {artist.discography.map((d) => (
                 <div
-                  className="grain w-[72px] h-[72px] rounded-[2px]"
-                  style={{ background: `center/cover no-repeat url(${d.cover})` }}
-                />
-                <div>
-                  <div className="text-[10px] tracking-eyebrow uppercase text-magenta font-bold">
-                    {d.kind}
-                  </div>
-                  <div className="font-display uppercase tracking-display text-[20px] my-0.5 font-normal">
-                    {d.title}
-                  </div>
-                  {d.note && (
-                    <div className="text-[12px] italic text-ink-muted">
-                      {d.note}
+                  key={d.id}
+                  className="grid grid-cols-[72px_1fr_auto] gap-4 py-4 border-t border-ink/15 items-center"
+                >
+                  <div
+                    className="grain w-[72px] h-[72px] rounded-[2px]"
+                    style={{
+                      background: `center/cover no-repeat url(${d.cover})`,
+                    }}
+                  />
+                  <div>
+                    <div className="text-[10px] tracking-eyebrow uppercase text-magenta font-bold">
+                      {d.kind}
                     </div>
-                  )}
+                    <div className="font-display uppercase tracking-display text-[20px] my-0.5 font-normal">
+                      {d.title}
+                    </div>
+                    {d.note && (
+                      <div className="text-[12px] italic text-ink-muted">
+                        {d.note}
+                      </div>
+                    )}
+                  </div>
+                  <div className="italic text-[13px] text-ink-muted">
+                    {d.year}
+                  </div>
                 </div>
-                <div className="italic text-[13px] text-ink-muted">{d.year}</div>
-              </div>
-            ))}
-          </div>
-        </aside>
+              ))}
+            </div>
+          </aside>
+        )}
+
+        <ArtistBio
+          className="order-1"
+          name={artist.name}
+          quote={artist.quote}
+          bio={artist.bioLong || artist.bioShort}
+          socials={artist.socials}
+          newsletterUrl={artist.newsletterUrl}
+        />
       </section>
 
       {/* Embeds */}
