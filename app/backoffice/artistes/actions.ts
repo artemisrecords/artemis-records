@@ -13,6 +13,7 @@ import {
 } from "@/lib/validation/artist";
 import * as m from "@/lib/db/artist-mutations";
 import { requireArtistAccess, requireRole } from "@/lib/auth-helpers";
+import { parseEmbedUrl } from "@/lib/embeds";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -129,4 +130,41 @@ export async function createArtistAction(input: unknown): Promise<ActionResult> 
   const id = await m.createArtist(parsed.data);
   revalidatePath("/backoffice/artistes");
   redirect(`/backoffice/artistes/${id}`);
+}
+
+export type ResolveEmbedResult =
+  | { ok: true; type: "spotify" | "youtube"; src: string; title: string }
+  | { ok: false; error: string };
+
+/**
+ * Reformate un lien de partage en URL d'embed et récupère le titre via oEmbed
+ * (appel serveur : les endpoints oEmbed de Spotify/YouTube ne sont pas CORS).
+ * Si l'oEmbed échoue, l'embed reste valide avec un titre vide.
+ */
+export async function resolveEmbed(rawUrl: string): Promise<ResolveEmbedResult> {
+  await requireRole("superadmin", "admin", "artiste");
+
+  const parsed = parseEmbedUrl(rawUrl);
+  if (!parsed) {
+    return { ok: false, error: "Lien non reconnu (Spotify ou YouTube attendu)." };
+  }
+
+  let title = "";
+  try {
+    const endpoint =
+      parsed.type === "spotify"
+        ? `https://open.spotify.com/oembed?url=${encodeURIComponent(parsed.src)}`
+        : `https://www.youtube.com/oembed?url=${encodeURIComponent(
+            `https://www.youtube.com/watch?v=${parsed.src.split("/embed/")[1]}`,
+          )}&format=json`;
+    const res = await fetch(endpoint, { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      const data = (await res.json()) as { title?: unknown };
+      if (typeof data.title === "string") title = data.title;
+    }
+  } catch {
+    // oEmbed indisponible → on garde title = "" ; l'embed est valide quand même.
+  }
+
+  return { ok: true, type: parsed.type, src: parsed.src, title };
 }
