@@ -10,6 +10,7 @@ import {
   AdminTextarea,
   Pill,
 } from "@/components/admin/AdminPrimitives";
+import { EmbedDialog } from "@/components/admin/EmbedDialog";
 import { saveArtistNewsletter } from "@/app/backoffice/newsletter/actions";
 import {
   saveIdentity,
@@ -152,6 +153,15 @@ export function ArtistEditClient({
   const [embeds, setEmbeds] = useState(artist.embeds);
   const [embedsStatus, setEmbedsStatus] = useState<Status>(null);
   const [embedsPending, startEmbeds] = useTransition();
+  // Popup d'ajout/édition d'un embed. index = null → création ; sinon édition.
+  const [embedDialog, setEmbedDialog] = useState<{ index: number | null } | null>(null);
+
+  const upsertEmbed = (embed: (typeof embeds)[number]) => {
+    setEmbeds((prev) => {
+      if (embedDialog?.index == null) return [...prev, embed];
+      return prev.map((x, j) => (j === embedDialog.index ? embed : x));
+    });
+  };
 
   const submitSocials = () => {
     setSocialsStatus(null);
@@ -629,52 +639,38 @@ export function ArtistEditClient({
               <div className="mt-8">
                 <div className="flex items-center justify-between mb-4">
                   <AdminEyebrow>Lecteurs intégrés</AdminEyebrow>
-                  <AdminBtn
-                    kind="secondary"
-                    onClick={() => setEmbeds([...embeds, { type: "spotify", title: "", src: "" }])}
-                  >
+                  <AdminBtn kind="secondary" onClick={() => setEmbedDialog({ index: null })}>
                     + Ajouter un embed
                   </AdminBtn>
                 </div>
-                <ul className="flex flex-col gap-2">
-                  {embeds.map((e, i) => (
-                    <li key={i} className="grid grid-cols-[120px_1fr_1.5fr_auto] gap-2 items-center">
-                      <select
-                        value={e.type}
-                        onChange={(ev) =>
-                          setEmbeds(
-                            embeds.map((x, j) =>
-                              j === i ? { ...x, type: ev.target.value as "spotify" | "youtube" } : x,
-                            ),
-                          )
-                        }
-                        className="bg-paper-soft border border-ink/15 px-2 py-2 text-[13px] rounded-[2px] outline-none focus:border-magenta"
+                {embeds.length === 0 ? (
+                  <p className="font-serif italic text-[13px] text-ink-subtle">
+                    Aucun lecteur pour l&apos;instant.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {embeds.map((e, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center gap-3 border border-ink/12 rounded-[2px] px-3 py-2.5"
                       >
-                        <option value="spotify">spotify</option>
-                        <option value="youtube">youtube</option>
-                      </select>
-                      <input
-                        value={e.title}
-                        onChange={(ev) =>
-                          setEmbeds(embeds.map((x, j) => (j === i ? { ...x, title: ev.target.value } : x)))
-                        }
-                        placeholder="Titre"
-                        className="bg-paper-soft border border-ink/15 px-3 py-2 text-[13px] rounded-[2px] outline-none focus:border-magenta"
-                      />
-                      <input
-                        value={e.src}
-                        onChange={(ev) =>
-                          setEmbeds(embeds.map((x, j) => (j === i ? { ...x, src: ev.target.value } : x)))
-                        }
-                        placeholder="https://..."
-                        className="bg-paper-soft border border-ink/15 px-3 py-2 text-[13px] rounded-[2px] outline-none focus:border-magenta"
-                      />
-                      <AdminBtn kind="ghost" onClick={() => setEmbeds(embeds.filter((_, j) => j !== i))}>
-                        Supprimer
-                      </AdminBtn>
-                    </li>
-                  ))}
-                </ul>
+                        <Pill>{e.type === "spotify" ? "Spotify" : "YouTube"}</Pill>
+                        <span className="flex-1 font-serif text-[13px] text-ink truncate">
+                          {e.title || <span className="italic text-ink-subtle">Sans titre</span>}
+                        </span>
+                        <AdminBtn kind="ghost" onClick={() => setEmbedDialog({ index: i })}>
+                          Modifier
+                        </AdminBtn>
+                        <AdminBtn
+                          kind="ghost"
+                          onClick={() => setEmbeds(embeds.filter((_, j) => j !== i))}
+                        >
+                          Supprimer
+                        </AdminBtn>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <div className="mt-3">
                   <AdminBtn kind="accent" onClick={submitEmbeds} disabled={embedsPending}>
                     {embedsPending ? "…" : "Enregistrer les lecteurs"}
@@ -682,6 +678,14 @@ export function ArtistEditClient({
                   <StatusLine status={embedsStatus} />
                 </div>
               </div>
+
+              {embedDialog && (
+                <EmbedDialog
+                  initial={embedDialog.index != null ? embeds[embedDialog.index] : undefined}
+                  onSave={upsertEmbed}
+                  onClose={() => setEmbedDialog(null)}
+                />
+              )}
             </>
           )}
 
