@@ -10,7 +10,6 @@ Package manager is **pnpm**. Node ≥ 20.
 pnpm dev          # Next dev server (Turbopack): http://localhost:3000
 pnpm build        # runs drizzle-kit migrate THEN next build: needs DATABASE_URL + migrations
 pnpm start        # serve prod build
-pnpm lint         # next lint
 
 pnpm db:generate  # drizzle-kit generate: emit new migration from lib/db/schema.ts
 pnpm db:migrate   # apply migrations (reads DATABASE_URL from .env.local via dotenv)

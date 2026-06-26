@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "drizzle-kit migrate && next build",
     "start": "next start",
-    "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
