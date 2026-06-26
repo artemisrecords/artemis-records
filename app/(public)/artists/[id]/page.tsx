@@ -64,7 +64,7 @@ export default async function ArtistDetailPage({ params }: { params: Params }) {
           colonne vide à droite). `md:flow-root` confine le float dans la section.
           Mobile : pile flex (bio puis discographie) ; la bio longue est repliée
           derrière un « Voir plus » (cf. ArtistBio). */}
-      <section className="px-[clamp(24px,4vw,56px)] py-[clamp(56px,8vw,96px)] max-w-[1080px] mx-auto flex flex-col md:flow-root">
+      <section className="px-[clamp(24px,4vw,56px)] py-[clamp(56px,8vw,96px)] flex flex-col md:flow-root">
         {artist.discography.length > 0 && (
           <aside className="order-2 mt-12 md:mt-0 md:float-right md:w-[360px] md:ml-12 md:mb-4">
             <Eyebrow>Discographie</Eyebrow>
